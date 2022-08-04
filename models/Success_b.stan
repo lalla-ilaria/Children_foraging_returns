@@ -13,7 +13,7 @@ parameters{
   real<lower=0> alpha;
   real<lower=0> beta; //age effect
   real<lower=0> gamma; //age elasticity
-  real eta_b; //knowledge elasticity
+  real<lower=0> eta_b; //knowledge elasticity
 	real xi; //exponent for length trip
 }
 transformed parameters{
@@ -31,7 +31,7 @@ model{
   alpha ~ normal(0,1)T[0,];
   beta ~ lognormal(0, 1);
   gamma ~lognormal(0, 1);
-  eta_b ~ normal(0, 1);
+  eta_b ~ lognormal(0, 1);
   xi ~ normal(0, 1);
   for ( i in 1:M ) {
          real p = 1 - exp (- alpha * phi[ID_i[i]] * psi[i]);

@@ -5,19 +5,25 @@ data{
 	real R[M];  //returns
 	real L[M];  //length of trip
 	real K[N];  //individual knowledge
-	real B[N];  //individual body
+	real H[N];  //individual height
+	real G[N];  //individual grip strength
 	real A[N];  //individual age
 	}
 parameters{
   vector [N] iota; //individual level random effect
+  vector<lower=0> [N] B;
   real<lower=0> sigma_i;
   real<lower=0> alpha;
   real<lower=0> beta; //age effect
   real<lower=0> gamma; //age elasticity
-  real<lower=0> zeta_k; //knowledge elasticity
-  real<lower=0> eta_b; //knowledge elasticity
+  real zeta_k; //knowledge elasticity
+  real eta_b; //knowledge elasticity
   real xi; //exponent for length trip
-	real<lower=0> sigma;
+	real <lower=0> a;
+	real <lower=0> kappa;
+  real lambda;
+  real<lower=0> sigma_b;
+  real<lower=0> sigma;
 }
 transformed parameters{
   vector [N] phi; //individual total effect
@@ -30,17 +36,25 @@ transformed parameters{
 
 }
 model{
-  iota ~ normal(0,0.5);
+  a ~ normal(0,1)T[0,];
+  iota ~ normal(0,1);
   sigma_i ~ exponential(1);
   alpha ~ normal(0,1)T[0,];
   beta ~ lognormal(0, 1);
-  gamma~ lognormal(1, 1);
-  zeta_k~ lognormal(0, 1);
-  eta_b ~ lognormal(0, 1);
+  gamma~ lognormal(0, 1);
+  zeta_k~ normal(0, 1);
+  eta_b ~ normal(0, 1);
   xi ~ normal(0, 1);
+  kappa ~ normal(0,1)T[0,];
+  lambda ~ normal(0,1);
+  sigma_b ~ exponential(1);
   sigma ~ exponential(1);
+  for(i in 1:N) {
+    real m_b = a * A[i] + kappa * G[i] + lambda * H[i];
+    B[i] ~ normal( m_b, sigma_b)T[0,];
+  }
   for ( i in 1:M ) {
-         real m =  log(alpha * phi[ID_i[i]] * psi[i]);
+         real m = log( alpha * phi[ID_i[i]] * psi[i]);
          R[i] ~ lognormal( m , sigma ); 
       }
 }

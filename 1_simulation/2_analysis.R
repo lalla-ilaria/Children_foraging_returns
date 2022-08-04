@@ -22,7 +22,7 @@ dat <- list(
 )
 
 #fit model
-m <- cstan( file= "models/model.stan" , data=dat , chains=1 )
+m <- cstan( file= "models/other_models/model.stan" , data=dat , chains=1 )
 precis(m) #looks good!
 tracerplot(m) # parameters for returns not exploring much the space?
 par(mfrow = c(1,1))
@@ -106,7 +106,7 @@ for (i in 1:4) {
             	B = d$B[d$ID_trip]/mean(d$B[d$ID_trip])
       )
 
-      m <- cstan( file= "models/model.stan" , data=dat , chains=1 )
+      m <- cstan( file= "models/other_models/model.stan" , data=dat , chains=1 )
 
       prec <- precis(m)
       post <- extract.samples(m)

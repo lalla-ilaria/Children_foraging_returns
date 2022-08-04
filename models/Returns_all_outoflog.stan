@@ -22,11 +22,11 @@ parameters{
 transformed parameters{
   vector [N] phi; //individual total effect
   vector [M] psi; //trip effect
-  for(i in 1:N) phi[i]  = exp (iota[i] * sigma_i) * ( 
-                          (1-exp(-beta * A[i]  )) ^ gamma * 
-                          K[i] ^ zeta_k * 
-                          B[i] ^ eta_b);
-  for(i in 1:M) psi[i] =  L[i] ^ xi;
+  for(i in 1:N) phi[i]  = iota[i] * sigma_i + 
+                          (1-exp(-beta * log(A[i])  )) * gamma + 
+                          log(K[i]) * zeta_k + 
+                          log(B[i]) * eta_b;
+  for(i in 1:M) psi[i] =  log(L[i]) * xi;
 
 }
 model{
@@ -40,7 +40,7 @@ model{
   xi ~ normal(0, 1);
   sigma ~ exponential(1);
   for ( i in 1:M ) {
-         real m =  log(alpha * phi[ID_i[i]] * psi[i]);
+         real m =  alpha + phi[ID_i[i]] + psi[i];
          R[i] ~ lognormal( m , sigma ); 
       }
 }
