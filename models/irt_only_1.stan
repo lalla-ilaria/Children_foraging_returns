@@ -41,12 +41,12 @@ transformed parameters{
   // }//i
 }
 model {
-	omega ~ normal (0,1);
+	omega ~ normal( -5, 3)T[,0];
   for(i in 1:Q) a[i] ~ normal(0, 1) T[0,]; //value constrained above zero
-	b ~ normal(2,0.5);
+	b ~ normal(0,2);
   //knowledge ~ normal(0,2);
-	iota_irt ~ normal(0,0.3);
-  ro_age ~ normal (1,0.5);
+	iota_irt ~ normal(0,1);
+  for (i in 1:2) ro_age[i] ~ normal( 3 , 2 ) T[0,];
   delta ~ dirichlet( prior_dirichlet );
   sigma_irt ~ exponential(1);
   for(i in 1:W){

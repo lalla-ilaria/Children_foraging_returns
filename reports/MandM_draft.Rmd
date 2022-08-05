@@ -122,33 +122,20 @@ Then $\phi$ is shaped by the effect of age, and scaled to include the effects of
 
 ```{r knowledge and body effects}
 #plot prior predictive simulation
-plot(NULL, xlim = c(0,3), ylim = c (0,3), 
+plot(NULL, xlim = c(0,3), ylim = c (0,2), 
      xlab = "Age", ylab = "Proportion improvement")
-#calculate per sample
-for(i in 1:nsamp){
-  phi[i,] <- (1-exp(-beta_a[i] * AGE  )) ^ gamma_a[i] *
-     mean(K) ^ beta_k[i]
-  lines( AGE,  phi[i,], col = col.alpha("cornflowerblue", 0.3))
-}
 
 lines (AGE, (1-exp(-1 * AGE  )) ^ 1 ,
        col = col.alpha("darkblue", 0.7))
 text(1.5, 0.8,"age only")
 lines (AGE, (1-exp(-1 * AGE  )) ^ 1 * 
-          mean(K) ^ 1,
+         1.5 ^ 1,
        col = col.alpha("darkblue", 0.7))
-text(1, 1.4,"with knowledge")
+text(1, 1,"with trait higher than avg")
 lines (AGE, (1-exp(-1 * AGE  )) ^ 1 * 
-         mean(K)  ^ 1* 
-         mean(B)  ^ 1,
+         0.5 ^ 1,
        col = col.alpha("darkblue", 0.7))
-text(0.5, 2,"with knowledge&body")
-lines (AGE, (1-exp(-1 * AGE  )) ^ 1 * 
-         mean(K)  ^ -1* 
-         mean(B)  ^ -1,
-       col = col.alpha("darkblue", 0.7))
-text(1.5, 0.2,"with negative elasticity of knowledge&body")
-
+text(1, 0.3,"with trait lower than avg")
 ```
 
 Moving on to $\psi$, this parameter includes all info relative to the foraging trip or trap, specifically, for now, a time scaling parameter, $\xi$ which moderates the effect of the duration of a foraging trip or of how many hours passed since a trap was checked last. 

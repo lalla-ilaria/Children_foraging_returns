@@ -16,23 +16,23 @@ data {
 
 parameters {
 	//knowledge parameters
-	real<upper=0> omega;
+	//real omega;
 	vector[W] iota_irt;       // individual intercepts on knowledge
   real<lower=0> sigma_irt;  //sd for iota_irt
   vector<lower=0>[2] ro_age; // coefficient relating age to knowledge, one per sex
   vector<lower=0>[Q] a;     //discrimination of questions
-  vector[Q] b;     //difficulty of questions
+  vector<lower=0>[Q] b;     //difficulty of questions
   simplex[O-1] delta ;       //age specific effects
 }
 transformed parameters{
   //additional parameters
-  vector[W] knowledge;
+  vector<lower=0>[W] knowledge;
   //vector[N] knowledge_merged;
   vector[O] delta_j;
   delta_j  = append_row(1, delta);
 
   //knowledge estimation
-  for ( i in 1:W )   knowledge[i] = omega + iota_irt[i] * sigma_irt +                    //individual interecepts -absorbs residual variation
+  for ( i in 1:W )   knowledge[i] = 1 + iota_irt[i] * sigma_irt +                    //individual interecepts -absorbs residual variation
                                     ro_age[sex_irt[i]] * sum (delta_j[ 1 : age_irt[i]] );//effect of age - sex specific
   //impute knowledge from irt if missing data
   // for(i in 1:N) {
@@ -41,14 +41,14 @@ transformed parameters{
   // }//i
 }
 model {
-	omega ~ normal (0,1);
+	//omega ~ normal( 2, 0.5);
   for(i in 1:Q) a[i] ~ normal(0, 1) T[0,]; //value constrained above zero
-	b ~ normal(2,0.5);
+	for(i in 1:Q) b[i] ~ normal(5,0.5)T[0,];
   //knowledge ~ normal(0,2);
 	iota_irt ~ normal(0,0.3);
-  ro_age ~ normal (1,0.5);
+  for (i in 1:2) ro_age[i] ~ normal( 4 , 0.5 ) T[0,];
   delta ~ dirichlet( prior_dirichlet );
-  sigma_irt ~ exponential(1);
+  sigma_irt ~ exponential(3);
   for(i in 1:W){
 		vector[Q] p_irt = a .* (knowledge[i]-b);
 		target += bernoulli_logit_lpmf(answers[i,]|p_irt);

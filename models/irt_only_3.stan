@@ -28,6 +28,7 @@ transformed parameters{
   //additional parameters
   vector[W] knowledge;
   //vector[N] knowledge_merged;
+  vector[W] knowledge_stnd;
   vector[O] delta_j;
   delta_j  = append_row(1, delta);
 
@@ -39,14 +40,15 @@ transformed parameters{
   //   if (knowledge_impute[i] == 0) knowledge_merged[i] = knowledge[ID_k[i]]; 
   //   if (knowledge_impute[i] == 1) knowledge_merged[i] = 1;//omega + ro_age[sex[i]] * sum (delta_j[ 1 : age_int[i]] ); 
   // }//i
+  for ( i in 1:W ) knowledge_stnd[i] = (knowledge[i] - min(knowledge)) / mean ((knowledge - min(knowledge)));
 }
 model {
-	omega ~ normal (0,1);
+	omega ~ normal( -5, 3)T[,0];
   for(i in 1:Q) a[i] ~ normal(0, 1) T[0,]; //value constrained above zero
-	b ~ normal(2,0.5);
+	b ~ normal(0,2);
   //knowledge ~ normal(0,2);
-	iota_irt ~ normal(0,0.3);
-  ro_age ~ normal (1,0.5);
+	iota_irt ~ normal(0,1);
+  for (i in 1:2) ro_age[i] ~ normal( 3 , 2 ) T[0,];
   delta ~ dirichlet( prior_dirichlet );
   sigma_irt ~ exponential(1);
   for(i in 1:W){
