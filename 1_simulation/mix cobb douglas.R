@@ -568,32 +568,33 @@ precis(m_tide_i)
 m_shell_1k <- cstan( file= "models/2_shell_1k.stan" , data=dat_shells , chains=3, cores = 3 )
 m_trap_1k <- cstan( file= "models/2_trap_1k.stan" , data=dat_traps , chains=3, cores = 3 )
 
-dat_shells$H <- dc_shellppl$height / min(dc_shellppl$height)
-dat_traps$H <- dc_trapppl$height / min(dc_trapppl$height)
+dat_shells$H <- 1 + dat_shells$H
+dat_traps$H <- 1 + dat_traps$H
 m_shell_1h <- cstan( file= "models/2_shell_all.stan" , data=dat_shells , chains=3, cores = 3 )
 m_trap_1h <- cstan( file= "models/2_trap_all.stan" , data=dat_traps , chains=3, cores = 3 )
 
 dat_shells$H <- dc_shellppl$height / mean(dc_shellppl$height)
 dat_traps$H <- dc_trapppl$height / mean(dc_trapppl$height)
-dat_shells$G <- dc_shellppl$grip / mean(dc_shellppl$grip)
-dat_traps$G <- dc_trapppl$grip / min(dc_trapppl$grip)
+dat_shells$G <- 1 + dat_shells$G
+dat_traps$G <- 1 + dat_traps$G
 m_shell_1g <- cstan( file= "models/2_shell_all.stan" , data=dat_shells , chains=3, cores = 3 )
 m_trap_1g <- cstan( file= "models/2_trap_all.stan" , data=dat_traps , chains=3, cores = 3 )
 
 par(mfrow = c(4,2), mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 models <- c("m_shell_all", "m_trap_all", "m_shell_1k", "m_trap_1k", "m_shell_1h", "m_trap_1h", "m_shell_1g", "m_trap_1g")
 for( i in 1:8) plot( precis( get (models [i])))
+
 for( j in 1:8){
   post <- extract.samples(get (models [j]))
   if(str_detect(models [j], "shell")){
       plot(dc_shellppl$age[dat_shells$ID_i], dat_shells$R, 
-       xlim = c(0,25), ylim = c(0, max(dat_shells$R)+1), pch = 16, col = col.alpha("grey40", 0.7))
+       xlim = c(0,age_plot), ylim = c(0, max(dat_shells$R)+1), pch = 16, col = col.alpha("grey40", 0.7))
       for(i in 1:150){
         phi <-  exp(apply(post$iota,1,mean )[i] ) * (
           (1-exp(- post$beta[i] * seq(0,3,0.1)  )) ^ post$gamma[i] *
             mean(post$K[i,]) ^ post$zeta_k[i] *
-            mean(dat_shells$H) ^ post$eta_h[i] *
-            mean(dat_shells$G) ^ post$theta_g[i]
+            1 ^ post$eta_h[i] *
+            1 ^ post$theta_g[i]
         )
         psi <-   (mean(dat_shells$L)) ^ post$xi[i] * exp(post$tau[i] * mean(dat_shells$tide))
         R <- exp (  log(post$alpha[i] * phi * psi) + (post$sigma[i]^2 /2))
@@ -603,13 +604,13 @@ for( j in 1:8){
     }
   }else{
       plot(dc_trapppl$age[dat_traps$ID_i], dat_traps$S, 
-        xlim = c(0,25), ylim = c(0, 1), pch = 16, col = col.alpha("grey40", 0.7))
+        xlim = c(0,age_plot), ylim = c(0, 1), pch = 16, col = col.alpha("grey40", 0.7))
       for(i in 1:150){
         phi <-  exp(apply(post$iota,1,mean )[i] ) * (
           (1-exp(- post$beta[i] * seq(0,3,0.1)  )) ^ post$gamma[i] *
             mean(post$K[i,]) ^ post$zeta_k[i]*
-            mean(dat_traps$H) ^ post$eta_h[i] *
-            mean(dat_traps$G) ^ post$theta_g[i]
+            1 ^ post$eta_h[i] *
+            1 ^ post$theta_g[i]
         )
         psi <-   (mean(dat_traps$L)) ^ post$xi[i]
         p <- 1 - exp ( - post$alpha[i] * phi * psi)

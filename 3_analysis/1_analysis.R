@@ -1,7 +1,11 @@
 library(rethinking)
+library(dplyr)
 library(rlist)
 real_data <- list.load("2_data_preparation/processed_data.RData")
-d_knowledge <- list.load("../data/processed_data.RData")
+boycol  <- rgb(114/255, 181/255, 40/255) #"navyblue"
+girlcol <- rgb(208/255, 29/255, 157/255) #"red3"
+
+#d_knowledge <- list.load("../data/processed_data.RData")
 
 
 ##########################################################################
@@ -63,6 +67,7 @@ m_trap_age <- cstan( file= "models/1_trap_age.stan" , data=dat_traps , chains=3,
 #keep complete cases only
 dc_shellppl <- real_data$shell_ppl[complete.cases(real_data$shell_ppl$knowledge),]
 dc_shellppl <- dc_shellppl[complete.cases(dc_shellppl$height),]
+dc_shellppl <- dc_shellppl[complete.cases(dc_shellppl$grip),]
 dc_shell_k <- real_data$shell_k[which(rownames(real_data$shell_k) %in% dc_shellppl$anonymeID),]
 dc_shells <- real_data$shells[which(real_data$shells$anonymeID %in% dc_shellppl$anonymeID),]
 #add index variables
@@ -126,122 +131,114 @@ m_trap_all <- cstan( file= "models/2_trap_all.stan" , data=dat_traps , chains=3,
 #create data frame
 d_shellppl <- real_data$shell_ppl
 d_shells <- real_data$shells
-
+d_shell_k <- real_data$shell_k
 d_trapppl <- real_data$trap_ppl
 d_traps <- real_data$traps
+d_trap_k <- real_data$trap_k
+
+
+#remove people for whom we have only anthropometric data
+d_shellppl <- d_shellppl %>% filter(!data == "anthropometrics")
+d_shellppl <- d_shellppl %>% filter(!data == "knowledge")
+d_shell_k <- d_shell_k[1:nrow(d_shellppl),]
+d_trapppl <- d_trapppl %>% filter(!data == "anthropometrics")
+d_trapppl <- d_trapppl %>% filter(!data == "knowledge")
+d_trap_k <- d_trap_k[1:nrow(d_trapppl),]
+
+
 
 #add index variables
+#index and sort all individuals so we can loop across them
 d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
 d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
-d_shells$index_id <- as.integer(as.factor(d_shells$anonymeID))
+#add index for individuals in the foraging data
+for ( i in 1:nrow(d_shells)){
+  d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
+}
+#sort knowledge data
+d_shell_k <- d_shell_k[ order(row.names(d_shell_k)), ]
 
+#same for traps
 d_trapppl$index_id <- as.integer(as.factor(d_trapppl$anonymeID))
 d_trapppl <- d_trapppl[order(d_trapppl$index_id),]
-d_traps$index_id <- as.integer(as.factor(d_traps$anonymeID))
-
-#make df with all the data from knowledge interviews
-d_shell_k_ppl <- data.frame (anonymeID = rownames(d_knowledge$Y_l),
-                             age = d_knowledge$A,
-                             sex = d_knowledge$S)
-for (i in 1:nrow(d_shellppl)) {
-  if(d_shellppl$anonymeID[i] %in% d_shell_k_ppl$anonymeID) {
-    d_shellppl$position_k[i] <- which (d_shell_k_ppl$anonymeID == d_shellppl$anonymeID[i])
-  } else {
-    d_shellppl$position_k[i] <- NA
-  }
+for ( i in 1:nrow(d_traps)){
+  d_traps$index_id[i] <- d_trapppl$index_id[which ( d_trapppl$anonymeID == d_traps$anonymeID[i])]
 }
-
-d_trap_k_ppl <- data.frame (anonymeID = rownames(d_knowledge$Y_l), 
-                            age = d_knowledge$A,
-                            sex = d_knowledge$S,
-                            index_id = NA)
-for (i in 1:nrow(d_trap_k_ppl)) {
-  if(d_trap_k_ppl$anonymeID[i] %in% d_trapppl$anonymeID) {
-    d_trap_k_ppl$index_id[i] <- d_trapppl$index_id[which (d_trapppl$anonymeID == d_trap_k_ppl$anonymeID[i])]
-  }#if
-}
-d_shell_k <- d_knowledge$Y_l[which(rownames(d_knowledge$Y_l) %in% d_shellppl$anonymeID),]
+d_trap_k <- d_trap_k[ order(row.names(d_trap_k)), ]
 
 dat_shells <- list(
   #foraging data
   N = nrow(d_shellppl),
   M = nrow(d_shells),
   ID_i= d_shells$index_id,
-  ID_k = ifelse( is.na(d_shellppl$position_k), -999, d_shellppl$position_k) , #make vector of length N where is reported position of individuals for whom we have knowledge in the knowledge list
+  has_foraging = ifelse(d_shellppl$data == "shells", 1, 0),#[1:40],
+  has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),#[1:40], #vector of 0/1 for whether knowledge has to be imputed
   returns = as.numeric(d_shells$returns)/1000,
-  age = d_shellppl$age / mean(d_shellppl$age),
-  age_int = d_shellppl$age ,
-  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  age = (d_shellppl$age / mean(d_shellppl$age)),#[1:40],
+  age_int = d_shellppl$age,#[1:40],
+  sex = ifelse(d_shellppl$sex == "m", 1, 2),#[1:40], #make vector of sexes 1 = male 2 = female
   #height 
   #grip
   duration = d_shells$lenght_min/mean(d_shells$lenght_min),
   tide = d_shells$tide_avg_depth,
-  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
   #knowledge data
-  W = nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
-  Q = ncol(d_knowledge$Y_l),
+  Q = 100,#ncol(d_shell_k),
   O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
-  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
-  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
-  answers = d_knowledge$Y_l, #all answers from freelist
-  prior_dirichlet = rep( 0.2, length (1:56 ) -1 ) #prior for Dirichlet
+  answers = d_shell_k[, 1:100], #all answers from freelist
+  prior_dirichlet = rep( 0.5, length (1:56 ) -1 ) #prior for Dirichlet
 )
-dat_shells <- list(
-  #knowledge data
-  W = 20,#nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
-  Q = 50,#ncol(d_knowledge$Y_l),
-  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
-  age_irt = d_shell_k_ppl$age[1:20], #[W] vector of ages of ppl in irt
-  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2)[1:20],
-  answers = d_knowledge$Y_l[1:20, 1:50], #all answers from freelist
-  prior_dirichlet = rep( 2, length (1:56 ) -1 ) #prior for Dirichlet
-)
-dat_shells <- list(
-  #foraging data
-  N = nrow(d_shellppl),
-  M = nrow(d_shells),
-  ID_i= d_shells$index_id,
-  ID_k = ifelse( is.na(d_shellppl$position_k), -999, d_shellppl$position_k) , #make vector of length N where is reported position of individuals for whom we have knowledge in the knowledge list
-  returns = as.numeric(d_shells$returns)/1000,
-  age = d_shellppl$age / mean(d_shellppl$age),
-  age_int = d_shellppl$age ,
-  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
-  #height 
-  #grip
-  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
-  tide = d_shells$tide_avg_depth,
-  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
-  #knowledge data
-  W = nrow(d_shell_k), #n of individuals for whom we have knowledge
-  Q = ncol(d_shell_k),
-  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
-  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
-  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
-  answers = d_shell_k, #all answers from freelist
-  prior_dirichlet = rep( 0.2, length (1:56 ) -1 ) #prior for Dirichlet
-)
+for (i in 1:length(dat_shells)) dat_shells[[i]][is.na(dat_shells[[i]])] <- -999
 
+#try tightening priors
+#making a positive version of knowledge
+#connect to foraging stuff
+m_shell_irt <- cstan( file= "models/2_shell_k3.stan" , data=dat_shells , 
+                      chains=3, cores = 3, iter = 500 )
 
-m_shell_irt <- cstan( file= "models/irt_only_3.stan" , data=dat_shells , chains=3, cores = 3 )
+#m <- cmdstan_model("models/2_shell_k2.stan" )
 #standardizing knowledge IN the models???
 post <- extract.samples(m_shell_irt)
-plot(NULL, xlim = c(1,dat_shells$W), ylim = c(-5, 5))
-for (i in 1:dat_shells$W) {
-  points ( rep(i, 1500 ),
-    post$knowledge_stnd[,i] )
+sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
+presence_col <- ifelse(dat_shells$has_knowledge == "1", "deepskyblue4", "darkorange3")
+plot(NULL, xlim = c(1,dat_shells$N), ylim = c(0, 4))
+for (i in 1:dat_shells$N) {
+  points ( rep(i, 750 ),
+    post$knowledge_st[,i] ,
+    col = rep(ifelse(dat_shells$has_knowledge[i] == 1, col.alpha("deepskyblue", 0.3), col.alpha("darkgoldenrod1", 0.3))))
 }
-sex_col <- ifelse(dat_shells$sex_irt == "1", boycol, girlcol)
+points(1:dat_shells$N, apply(post$knowledge_st, 2, mean), 
+     ylim = c(0, 4), pch = 19, col = presence_col)
+for (i in 1:dat_shells$N) {
+  lines ( rep(i, 2 ),
+    PI(post$knowledge_st[,i]) ,
+    col = rep(ifelse(dat_shells$has_knowledge[i] == 1, "deepskyblue4", "darkorange3")))
+}
+
+plot(d_shellppl$knowledge, apply(post$knowledge_st, 2, mean))
 year_eff <- apply(post$delta_j[,], 1, cumsum)
-plot(x = dat_shells$age_irt, 
+year_seq <- seq(0,4,0.2)
+plot(x = dat_shells$age, 
      y = apply(post$knowledge, 2, mean), 
+     xlim = c(0,4),
      xlab = "Age" , 
      ylab = "",
-     yaxt='n' ,
      cex.lab=1.8 , 
      cex.axis=1.8 ,
-     pch = 19 , 
+     pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
+for (i in 1:150) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,1] * ( 1 - exp(-post$ro_age[i,1] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( boycol, alpha = 0.1))}
+for (i in 1:150) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,2] * ( 1 - exp(-post$ro_age[i,2] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( girlcol, alpha = 0.1))}
+
+
 for (i in 1:150) {
   lines(x = 1:nrow(year_eff),  
         y = post$omega[i] + post$ro_age[i,1] * year_eff[,i], 
@@ -255,14 +252,13 @@ for (i in 1:150) {
 lines( x = 1:nrow(year_eff),  
        y = mean(post$omega) + mean(post$ro_age[,1]) * apply(year_eff, 1, mean), 
        type = "l", 
-       col = col.alpha( boycol2, alpha = 1), lwd = 1.5 )
+       col = col.alpha( boycol, alpha = 1), lwd = 1.5 )
 lines( x = 1:nrow(year_eff),  
        y = mean(post$omega) + mean(post$ro_age[,2]) * apply(year_eff, 1, mean), 
        type = "l", 
-       col = col.alpha( girlcol2, alpha = 1), lwd = 1.5 )
-title( main = maintitle, cex.main = 1.8, ylab = "Ecological Knowledge", line=1, cex.lab=1.8)
+       col = col.alpha( girlcol, alpha = 1), lwd = 1.5 )
 
-m_shell_all <- cstan( file= "models/2_shell_knowledgeinput.stan" , data=dat_shells , chains=3, cores = 3 )
+#m_shell_all <- cstan( file= "models/2_shell_knowledgeinput.stan" , data=dat_shells , chains=3, cores = 3 )
 
 #TRAPS
 #keep complete cases only
@@ -309,3 +305,78 @@ dat_shells <- list(
   prior_dirichlet = rep( 0.5, length (0:40 ) -1 ) #prior for Dirichlet
 )
 m_shell_all <- cstan( file= "models/2_shell_knowledgeinput.stan" , data=dat_shells , chains=3, cores = 3 )
+# for (i in 1:nrow(d_shellppl)) {
+#   if(d_shellppl$anonymeID[i] %in% rownames(d_shell_k)) {
+#     d_shellppl$index_k[i] <- which (rownames(d_shell_k) == d_shellppl$anonymeID[i])
+#   } else {
+#     d_shellppl$index_k[i] <- NA
+#   }
+# }
+# for (i in 1:nrow(d_trapppl)) {
+#   if(d_trapppl$anonymeID[i] %in% rownames(d_trap_k)) {
+#     d_trapppl$index_k[i] <- which (rownames(d_trap_k) == d_trapppl$anonymeID[i])
+#   } else {
+#     d_trapppl$index_k[i] <- NA
+#   }
+# }
+
+dat_shells <- list(
+  #knowledge data
+  W = 20,#nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
+  Q = 50,#ncol(d_knowledge$Y_l),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age[1:20], #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2)[1:20],
+  answers = d_knowledge$Y_l[1:20, 1:50], #all answers from freelist
+  prior_dirichlet = rep( 2, length (1:56 ) -1 ) #prior for Dirichlet
+)
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),
+  M = nrow(d_shells),
+  ID_i= d_shells$index_id,
+  ID_k = ifelse( is.na(d_shellppl$position_k), -999, d_shellppl$position_k) , #make vector of length N where is reported position of individuals for whom we have knowledge in the knowledge list
+  returns = as.numeric(d_shells$returns)/1000,
+  age = d_shellppl$age / mean(d_shellppl$age),
+  age_int = d_shellppl$age ,
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  #height 
+  #grip
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
+  #knowledge data
+  W = nrow(d_shell_k), #n of individuals for whom we have knowledge
+  Q = ncol(d_shell_k),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
+  answers = d_shell_k, #all answers from freelist
+  prior_dirichlet = rep( 0.2, length (1:56 ) -1 ) #prior for Dirichlet
+)
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),
+  M = nrow(d_shells),
+  ID_i= d_shells$index_id,
+  ID_k = ifelse( is.na(d_shellppl$position_k), -999, d_shellppl$position_k) , #make vector of length N where is reported position of individuals for whom we have knowledge in the knowledge list
+  returns = as.numeric(d_shells$returns)/1000,
+  age = d_shellppl$age / mean(d_shellppl$age),
+  age_int = d_shellppl$age ,
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  #height 
+  #grip
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
+  #knowledge data
+  W = nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
+  Q = ncol(d_knowledge$Y_l),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
+  answers = d_knowledge$Y_l, #all answers from freelist
+  prior_dirichlet = rep( 0.2, length (1:56 ) -1 ) #prior for Dirichlet
+)
+
+#m_shell_irt <- cstan( file= "models/irt_only_3.stan" , data=dat_shells , chains=3, cores = 3 )
