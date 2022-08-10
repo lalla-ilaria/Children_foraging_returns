@@ -70,16 +70,17 @@ sim_data <- function (N , M , Q = 0,   #number of
   return( list (N = N, #number of kids
                 M = M, #number of trips
                 Q = Q, #number of questions
-                A = AGE, #ages
-                K = K, #knowledge
-                B = B, #body
-                Y = Y, #answers to questionnaire
-                L = L, #duration  of trips
+                age = AGE, #ages
+                sex = 1 + rbern(N, 0.5),
+                knowledge = K, #knowledge
+                body = B, #body
+                answers = Y, #answers to questionnaire
+                duration = L, #duration  of trips
                 ID_ind = ID_ind, #child per trip
                 p = p, #prob success, for testing
                 phi = phi, #for testing
-                S = S,
-                R = R  #returns amount
+                success = S,
+                returns = R  #returns amount
                 ) )
 }
 

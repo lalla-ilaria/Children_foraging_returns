@@ -3,6 +3,7 @@ library(dplyr)
 library(rlist)
 #load data
 real_data <- list.load("2_data_preparation/processed_data.RData")
+source("1_simulation/1_simulation.R")
 #define colors & stuff for plotting
 boycol  <- rgb(114/255, 181/255, 40/255) #"navyblue"
 girlcol <- rgb(208/255, 29/255, 157/255) #"red3"
@@ -11,6 +12,30 @@ shellcol <-  "#ea5914"
 othercol <- "grey30"
 seq_trait <- seq(0,3,0.001)
 age_plot <- 40
+
+#############################
+#SIMULATED DATA
+#############################
+d <- sim_data(50, 100, 100, zero = F)
+dat_shells <- list(
+  #foraging data
+  N = d$N,
+  M = d$M,
+  ID_i= d$ID_ind,
+  has_foraging = rep(1, d$N),
+  has_knowledge = rep(1, d$N),
+  returns = d$returns/10,
+  age = d$age / mean(d$age),
+  sex = d$sex, #no diff between sexes in simulation
+  duration = d$duration/mean(d$duration),
+  tide = rep(0, d$M), #no tide effect
+  #knowledge data
+  Q = d$Q,
+  answers = d$answers
+)
+
+m_draft <- cstan( file= "models/3_draft.stan" , data=dat_shells , 
+                  chains=3, cores = 3, iter = 500 )
 
 #############################
 #PREPARE DATA
