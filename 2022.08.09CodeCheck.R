@@ -47,7 +47,6 @@ d_shell_k <- real_data$shell_k
 
 #remove people for whom we have only anthropometric data
 d_shellppl <- d_shellppl %>% filter(!data == "anthropometrics")
-d_shellppl <- d_shellppl %>% filter(!data == "knowledge")
 d_shell_k <- d_shell_k[1:nrow(d_shellppl),]
 
 #add index variables
@@ -78,7 +77,7 @@ dat_shells <- list(
   tide = d_shells$tide_avg_depth,
   #knowledge data
   Q = ncol(d_shell_k),                        #n items in freelist
-  answers = d_shell_k                         #all answers from freelist
+  answers = d_shell_k                       #all answers from freelist
 )
 dat_shells[["answers"]][is.na(dat_shells[["answers"]])] <- -999
 
@@ -138,29 +137,28 @@ for (i in 1:250) {
         col = col.alpha( girlcol, alpha = 0.1))}
 
 #plot of returns
-post_s <- post
-  phi <-  exp(mean(post_s$iota) ) * (
-      (1-exp(- mean(post_s$beta) * seq_trait  )) ^ mean(post_s$gamma))
-  psi <-   (mean(dat_shells$duration)) ^ mean(post_s$xi) * 
-      exp(mean(dat_shells$tide) * mean(post_s$tau))
-  R <- exp (  log(mean(post_s$alpha) * phi * psi) + 
-                (mean(post_s$sigma)^2 /2))
+  phi <-  exp(mean(post$iota) ) * (
+      (1-exp(- mean(post$beta) * seq_trait  )) ^ mean(post$gamma))
+  psi <-   (mean(dat_shells$duration)) ^ mean(post$xi) * 
+      exp(mean(dat_shells$tide) * mean(post$tau))
+  R <- exp (  log(mean(post$alpha) * phi * psi) + 
+                (mean(post$sigma)^2 /2))
   samp_data <- rlnorm(length(seq_trait),  
-                      log(mean(post_s$alpha) * phi * psi), 
-                      mean(post_s$sigma))
+                      log(mean(post$alpha) * phi * psi), 
+                      mean(post$sigma))
   
   plot(jitter(seq_trait) * mean(d_shellppl$age), samp_data, 
        xlim = c(0,age_plot), ylim = c(0, max(dat_shells$returns)+1), 
        xlab = "Age", ylab = "kg shellfish",
        pch = 16, col = col.alpha("orange", 0.2))
   for(i in 1:150){
-    phi <-  exp(apply(post_s$iota,1,mean )[i] ) * (
-      (1-exp(- post_s$beta[i] * seq_trait  )) ^ post_s$gamma[i]
+    phi <-  exp(apply(post$iota,1,mean )[i] ) * (
+      (1-exp(- post$beta[i] * seq_trait  )) ^ post$gamma[i]
     )
-    psi <-   (mean(dat_shells$duration)) ^ post_s$xi[i] * 
-      exp(mean(dat_shells$tide) * post_s$tau[i])
-    R <- exp (  log(post_s$alpha[i] * phi * psi) + 
-                  (post_s$sigma[i]^2 /2))
+    psi <-   (mean(dat_shells$duration)) ^ post$xi[i] * 
+      exp(mean(dat_shells$tide) * post$tau[i])
+    R <- exp (  log(post$alpha[i] * phi * psi) + 
+                  (post$sigma[i]^2 /2))
     lines( seq_trait * mean(d_shellppl$age),  R, 
            col = col.alpha(shellcol, 0.2), lwd = 1)
   }
