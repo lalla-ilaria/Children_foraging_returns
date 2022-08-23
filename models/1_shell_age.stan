@@ -1,11 +1,11 @@
 data{
 	int N;      //number of children
 	int M;      //number of trip
-	int ID_i[M];//id of forager/return
-	real R[M];  //returns
-	real L[M];  //length of trip
-	real A[N];
-	real tide[M];//height of tide
+	array[M] int ID_i;//id of forager/return
+	array[M] real returns;  //returns
+	array[M] real duration;  //length of trip
+	array[N] real age;
+	array[M] real tide;//height of tide
 	}
 parameters{
   vector [N] iota;
@@ -20,10 +20,10 @@ parameters{
 transformed parameters{
   vector [N] phi;
   vector [M] psi;
-  for(i in 1:N) phi[i]  = exp (iota[i] * sigma_i) * ( 
-                          (1-exp(-beta * A[i]  )) ^ gamma );
-  for(i in 1:M) psi[i] =  L[i] ^ xi *
-                          exp( tide[i] * tau);//height of tide
+  for(i in 1:N) phi[i]  = iota[i] * sigma_i +  
+                          gamma * log(1-exp(-beta * age[i]  )) ;
+  for(i in 1:M) psi[i] =  xi * log(duration[i]) + 
+                          tau * tide[i] ;//height of tide
 ;
 
 }
@@ -37,7 +37,7 @@ model{
   tau ~ normal(0, 1);
   sigma ~ exponential(1);
   for ( i in 1:M ) {
-         real m = log( alpha * phi[ID_i[i]] * psi[i]);
-         R[i] ~ lognormal( m , sigma ); 
+         real m = log( alpha) + phi[ID_i[i]] + psi[i];
+         returns[i] ~ lognormal( m , sigma ); 
       }
 }

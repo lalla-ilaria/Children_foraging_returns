@@ -1,10 +1,10 @@
 data{
 	int N;      //number of children
 	int M;      //number of trip
-	int ID_i[M];//id of forager/return
-	int S[M];  //returns
-	real L[M];  //length of trip
-	real A[N];
+	array[M] int ID_i;//id of forager/return
+	array[M] int success;  //returns
+	array[M] real duration;  //length of trip
+	array[N] real age;
 	}
 parameters{
   vector [N] iota;
@@ -17,9 +17,9 @@ parameters{
 transformed parameters{
   vector [N] phi;
   vector [M] psi;
-  for(i in 1:N) phi[i]  = exp(iota[i] * sigma_i) * 
-                          (1-exp(-beta * A[i]  )) ^ gamma;
-  for(i in 1:M) psi[i] =  L[i] ^ xi;
+  for(i in 1:N) phi[i]  = iota[i] * sigma_i + 
+                          gamma * log(1-exp(-beta * age[i]  ));
+  for(i in 1:M) psi[i] =  xi * log(duration[i]);
 
 }
 model{
@@ -30,7 +30,7 @@ model{
   gamma ~lognormal(0, 1);
   xi ~ normal(0, 1);
   for ( i in 1:M ) {
-         real p = 1 - exp (- alpha * phi[ID_i[i]] * psi[i]);
-         S[i] ~ bernoulli(p); 
+         real p = 1 - exp (- alpha * exp(phi[ID_i[i]]) * exp(psi[i]));
+         success[i] ~ bernoulli(p); 
       }
 }

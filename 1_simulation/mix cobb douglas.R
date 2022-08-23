@@ -767,3 +767,1189 @@ mu_phi[2,] <- (1-exp(-median(post_s$beta) * seq_trait  )) ^ median(post_s$gamma)
        ( max(dat_shells$B)  ) ^ median(post_s$eta_b)
 shade(mu_phi, seq_trait* mean(dc_trapppl$age), col = col.alpha(trapcol, 0.2))
 dev.off()
+
+####################################################################################################################
+#FROM 1_ANALYSIS DRAFTS OF DATA IMPUTATION
+####################################################################################################################
+##########################################################################
+#PREPARE DATA -  input knowledge - draft
+##########################################################################
+#SHELLS
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),                       #n individuals in total sample
+  M = nrow(d_shells),                         #n trip/person
+  ID_i= d_shells$index_id,                    #index of person of trip 
+  has_foraging = ifelse(d_shellppl$data == "shells", 1, 0),
+  returns = as.numeric(d_shells$returns)/1000,#amount of shells in kg
+  age = (d_shellppl$age / mean(d_shellppl$age)),
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  #knowledge data
+  has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  Q = ncol(d_shell_k),                        #n items in freelist
+  answers = d_shell_k                       #all answers from freelist
+)
+dat_shells[["answers"]][is.na(dat_shells[["answers"]])] <- -999
+
+m_shell_knowledge<- cstan( file= "models/3_shells_imputk.stan" , data=dat_shells , 
+                           chains=3, cores = 3, iter = 500 )
+#TRAPS
+dat_traps <- list(
+  #foraging data
+  N = nrow(d_trapppl),                       #n individuals in total sample
+  M = nrow(d_traps),                         #n trip/person
+  ID_i= d_traps$index_id,                    #index of person of trip 
+  has_foraging = ifelse(d_trapppl$data == "traps", 1, 0),
+  success = d_traps$success,                 #whether trap captured something
+  age = (d_trapppl$age / mean(d_trapppl$age)),
+  sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+  #knowledge data
+  has_knowledge = ifelse(is.na(d_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  Q = ncol(d_trap_k),                        #n items in freelist
+  answers = d_trap_k                       #all answers from freelist
+)
+
+dat_traps[["answers"]][is.na(dat_traps[["answers"]])] <- -999
+
+
+m_traps_knowedge <- cstan( file= "models/3_traps_imputk.stan" , data=dat_traps , 
+                           chains=3, cores = 3, iter = 500 )
+
+
+##########################################################################
+#PREPARE DATA -  input height - draft
+##########################################################################
+#NB need not to estimate knowledge for the people we have only anthropometrics
+#but make one list of data 
+#SHELLS
+#create data frame
+d_shellppl <- real_data$shell_ppl
+d_shells <- real_data$shells
+
+#remove people for whom we have no height nor foraging returns
+d_shellppl <- d_shellppl[-which(is.na(d_shellppl$height)&
+                                  d_shellppl$data != "shells"),]
+#removing people for whom we have no age
+d_shellppl <- d_shellppl[-which(is.na(d_shellppl$age)&
+                                  d_shellppl$data != "shells"),]
+
+#add index variables
+#index and sort all individuals so we can loop across them
+d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
+d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
+#add index for individuals in the foraging data
+for ( i in 1:nrow(d_shells)){
+  d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
+}
+
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),                       #n individuals in total sample
+  M = nrow(d_shells),                         #n trip/person
+  ID_i= d_shells$index_id,                    #index of person of trip 
+  returns = as.numeric(d_shells$returns)/1000,#amount of shells in kg
+  age = (d_shellppl$age / mean(d_shellppl$age)),
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  #height data
+  has_height = ifelse(is.na(d_shellppl$height), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  height = d_shellppl$height/mean(d_shellppl$height, na.rm = TRUE),
+  min_height = 50/mean(d_shellppl$height, na.rm = TRUE)
+)
+dat_shells[["height"]][is.na(dat_shells[["height"]])] <- -999
+
+m_shells_height <- cstan( file= "models/4_shell_height.stan" , data=dat_shells , 
+                          chains=1, cores = 1, iter = 500 )
+
+#TRAPS
+#create data frame
+d_trapppl <- real_data$trap_ppl
+d_traps <- real_data$traps
+
+#remove people for whom we have no height nor foraging returns
+d_trapppl <- d_trapppl[-which(is.na(d_trapppl$height)&
+                                d_trapppl$data != "traps"),]
+#removing people for whom we have no age
+d_trapppl <- d_trapppl[-which(is.na(d_trapppl$age)&
+                                d_trapppl$data != "traps"),]
+
+#add index variables
+#index and sort all individuals so we can loop across them
+d_trapppl$index_id <- as.integer(as.factor(d_trapppl$anonymeID))
+d_trapppl <- d_trapppl[order(d_trapppl$index_id),]
+#add index for individuals in the foraging data
+for ( i in 1:nrow(d_traps)){
+  d_traps$index_id[i] <- d_trapppl$index_id[which ( d_trapppl$anonymeID == d_traps$anonymeID[i])]
+}
+
+dat_traps <- list(
+  #foraging data
+  N = nrow(d_trapppl),                       #n individuals in total sample
+  M = nrow(d_traps),                         #n trip/person
+  ID_i= d_traps$index_id,                    #index of person of trip 
+  success = d_traps$success,                 #whether trap captured something
+  age = (d_trapppl$age / mean(d_trapppl$age)),
+  sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+  #height data
+  has_height = ifelse(is.na(d_trapppl$height), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  height = d_trapppl$height/mean(d_trapppl$height, na.rm = TRUE),
+  min_height = 50/mean(d_trapppl$height, na.rm = TRUE)
+)
+dat_traps[["height"]][is.na(dat_traps[["height"]])] <- -999
+
+m_traps_height <- cstan( file= "models/4_trap_height.stan" , data=dat_traps , 
+                         chains=1, cores = 1, iter = 500 )
+
+
+##########################################################################
+#PREPARE DATA -  input height AND knowledge - draft
+##########################################################################
+#NB need not to estimate knowledge for the people we have only anthropometrics
+#but make one list of data 
+#SHELLS
+#create data frame
+d_shellppl <- real_data$shell_ppl
+d_shells <- real_data$shells
+d_shell_k <- real_data$shell_k
+
+#add index variables
+#index and sort all individuals so we can loop across them
+d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
+d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
+#add index for individuals in the foraging data
+for ( i in 1:nrow(d_shells)){
+  d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
+}
+#sort knowledge data
+d_shell_k <- d_shell_k[ order(row.names(d_shell_k)), ]
+
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),                       #n individuals in total sample
+  M = nrow(d_shells),                         #n trip/person
+  ID_i= d_shells$index_id,                    #index of person of trip 
+  returns = as.numeric(d_shells$returns)/1000,#amount of shells in kg
+  age = (d_shellppl$age / mean(d_shellppl$age)),
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  #height data
+  has_height = ifelse(is.na(d_shellppl$height), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  height = d_shellppl$height/mean(d_shellppl$height, na.rm = TRUE),
+  min_height = 50/mean(d_shellppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
+  #knowledge data
+  has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  Q = ncol(d_shell_k),                        #n items in freelist
+  answers = d_shell_k                         #all answers from freelist
+)
+dat_shells[["answers"]][is.na(dat_shells[["answers"]])] <- -999
+dat_shells[["height"]][is.na(dat_shells[["height"]])] <- -999
+
+m_shells_height <- cstan( file= "models/5_shell_heightandknowledge.stan" , data=dat_shells , 
+                          chains=1, cores = 1, iter = 500 )
+
+
+##########################################################################
+#PREPARE DATA -  input grip - draft
+##########################################################################
+#NB need not to estimate knowledge for the people we have only anthropometrics
+#but make one list of data 
+#SHELLS
+#create data frame
+d_shellppl <- real_data$shell_ppl
+d_shells <- real_data$shells
+
+#remove people for whom we have no height nor foraging returns
+d_shellppl <- d_shellppl[-which(is.na(d_shellppl$grip)&
+                                  d_shellppl$data != "shells"),]
+
+#add index variables
+#index and sort all individuals so we can loop across them
+d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
+d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
+#add index for individuals in the foraging data
+for ( i in 1:nrow(d_shells)){
+  d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
+}
+
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),                       #n individuals in total sample
+  M = nrow(d_shells),                         #n trip/person
+  ID_i= d_shells$index_id,                    #index of person of trip 
+  returns = as.numeric(d_shells$returns)/1000,#amount of shells in kg
+  age = (d_shellppl$age / mean(d_shellppl$age)),
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  #grip data
+  has_grip = ifelse(is.na(d_shellppl$grip), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  grip = d_shellppl$grip/mean(d_shellppl$grip, na.rm = TRUE),
+)
+dat_shells[["grip"]][is.na(dat_shells[["grip"]])] <- -999
+
+m_shells_grip <- cstan( file= "models/6_shell_grip.stan" , data=dat_shells , 
+                        chains=1, cores = 1, iter = 500 )
+
+######################################
+#other stuff -scroll through and check
+######################################
+
+precis(m_draft)
+post <- extract.samples(m_traps1)
+
+#make plots
+sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
+presence_col <- ifelse(dat_shells$has_knowledge == "1", "deepskyblue4", "darkorange3")
+
+#check standardized  knowledge
+plot(NULL, xlim = c(1,dat_shells$N), ylim = c(-10, 4), 
+     xlab = "index", ylab = "standardized knowledge")
+for (i in 1:dat_shells$N) {
+  points ( rep(i, 750 ),
+           post$knowledge[,i] ,
+           col = rep(ifelse(dat_shells$has_knowledge[i] == 1, col.alpha("deepskyblue", 0.3), col.alpha("darkgoldenrod1", 0.3))))
+}
+points(1:dat_shells$N, apply(post$knowledge, 2, mean), 
+       ylim = c(0, 4), pch = 19, col = presence_col)
+for (i in 1:dat_shells$N) {
+  lines ( rep(i, 2 ),
+          PI(post$knowledge[,i]) ,
+          col = rep(ifelse(dat_shells$has_knowledge[i] == 1, "deepskyblue4", "darkorange3")))
+}
+
+#check knowledge by age
+plot(d_shellppl$knowledge, apply(post$knowledge, 2, mean))
+year_eff <- apply(post$delta_j[,], 1, cumsum)
+year_seq <- seq(0,4,0.2)
+plot(x = dat_shells$age, 
+     y = apply(post$knowledge, 2, mean), 
+     xlim = c(0,4),
+     xlab = "Age" , 
+     ylab = "",
+     cex.lab=1.8 , 
+     cex.axis=1.8 ,
+     pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
+     cex = 1.5, 
+     col =  alpha( sex_col , 0.6 )  )
+for (i in 1:250) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,1] * ( 1 - exp(-post$ro_age[i,1] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( boycol, alpha = 0.1))}
+for (i in 1:250) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,2] * ( 1 - exp(-post$ro_age[i,2] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( girlcol, alpha = 0.1))}
+
+#plot of returns
+phi <-  mean(post$iota) +
+  mean(post$gamma) * log(1-exp(- mean(post$beta) * seq_trait  )) +
+  mean(post$zeta_k)* mean(post$knowledge) 
+psi <-  mean(post$xi) * mean(log(dat_shells$duration)) +
+  mean(post$tau)* mean(dat_shells$tide) 
+samp_data <- rlnorm(length(seq_trait),  
+                    mean(log(post$alpha)) + phi + psi, 
+                    mean(post$sigma))
+
+plot(jitter(seq_trait) * mean(d_shellppl$age), samp_data, 
+     xlim = c(0,age_plot), ylim = c(0, max(dat_shells$returns)+1), 
+     xlab = "Age", ylab = "kg shellfish",
+     pch = 16, col = col.alpha("orange", 0.2))
+for(i in 1:150){
+  phi <-  apply(post$iota,1,mean )[i] +
+    post$gamma[i] * log(1-exp(- post$beta[i] * seq_trait  )) +
+    post$zeta_k[i]*apply(post$knowledge, 1, mean)[i] 
+  
+  psi <-  post$xi[i] * mean(log(dat_shells$duration)) + 
+    post$tau[i] * mean(dat_shells$tide) 
+  R <- exp (  log(post$alpha[i]) + phi + psi + 
+                (post$sigma[i]^2 /2))
+  lines( seq_trait * mean(d_shellppl$age),  R, 
+         col = col.alpha(shellcol, 0.2), lwd = 1)
+}
+points(jitter(d_shellppl$age[d_shells$index_id], amount = 0.4), 
+       as.numeric(d_shells$returns)/1000,
+       pch = 16, cex = 0.8, col = col.alpha(othercol, 0.4))
+
+#diff knowledge outcome scale
+post <- extract.samples(m_draft4)
+phi <-  apply(post$iota,1,mean )  +
+  post$gamma * log(1-exp(- post$beta * 20  )) + 
+  post$zeta_k* min(apply(post$knowledge, 2, mean))   
+
+psi <-  post$xi * mean(log(dat_shells$duration)) + 
+  post$tau* mean(dat_shells$tide)
+min_k <- exp (mean(log(post$alpha)) + phi + psi + 
+                (mean(post$sigma)^2 /2))
+phi <-  apply(post$iota,1,mean )  +
+  post$gamma * log(1-exp(- post$beta * 20  )) + 
+  post$zeta_k* max(apply(post$knowledge, 2, mean))   
+
+psi <-  post$xi * mean(log(dat_shells$duration)) + 
+  post$tau* mean(dat_shells$tide)
+max_k <- exp (mean(log(post$alpha)) + phi + psi + 
+                (mean(post$sigma)^2 /2))
+diff_k1 <- max_k - min_k
+plot(density(diff_k1))
+
+
+
+#TRAPS
+d_trapppl <- real_data$trap_ppl
+d_traps <- real_data$traps
+d_trap_k <- real_data$trap_k
+
+#remove people for whom we have only anthropometric data
+d_trapppl <- d_trapppl %>% filter(!data == "anthropometrics")
+d_trapppl$age[which(is.na(d_trapppl$age))] <- 45
+d_trap_k <- d_trap_k[1:nrow(d_trapppl),]
+
+#add index variables
+#index and sort all individuals so we can loop across them
+d_trapppl$index_id <- as.integer(as.factor(d_trapppl$anonymeID))
+d_trapppl <- d_trapppl[order(d_trapppl$index_id),]
+for ( i in 1:nrow(d_traps)){
+  d_traps$index_id[i] <- d_trapppl$index_id[which ( d_trapppl$anonymeID == d_traps$anonymeID[i])]
+}
+#sort knowledge data
+d_trap_k <- d_trap_k[ order(row.names(d_trap_k)), ]
+
+dat_traps <- list(
+  #foraging data
+  N = nrow(d_trapppl),                       #n individuals in total sample
+  M = nrow(d_traps),                         #n trip/person
+  ID_i= d_traps$index_id,                    #index of person of trip 
+  has_foraging = ifelse(d_trapppl$data == "traps", 1, 0),
+  has_knowledge = ifelse(is.na(d_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  success = d_traps$success,                 #whether trap captured something
+  age = (d_trapppl$age / mean(d_trapppl$age)),
+  sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+  #knowledge data
+  Q = ncol(d_trap_k),                        #n items in freelist
+  answers = d_trap_k                       #all answers from freelist
+)
+
+dat_traps[["answers"]][is.na(dat_traps[["answers"]])] <- -999
+
+
+m_traps_knowedge <- cstan( file= "models/3_trap.stan" , data=dat_traps , 
+                           chains=3, cores = 3, iter = 500 )
+
+precis(m_traps_knowedge)
+post <- extract.samples(m_traps_knowedge)
+sex_col <- ifelse(dat_traps$sex == "1", boycol, girlcol)
+presence_col <- ifelse(dat_traps$has_knowledge == "1", "deepskyblue4", "darkorange3")
+
+#check standardized  knowledge
+plot(NULL, xlim = c(1,dat_traps$N), ylim = c(-10, 4), 
+     xlab = "index", ylab = "standardized knowledge")
+for (i in 1:dat_traps$N) {
+  points ( rep(i, 750 ),
+           post$knowledge[,i] ,
+           col = rep(ifelse(dat_traps$has_knowledge[i] == 1, col.alpha("deepskyblue", 0.3), col.alpha("darkgoldenrod1", 0.3))))
+}
+points(1:dat_traps$N, apply(post$knowledge, 2, mean), 
+       ylim = c(0, 4), pch = 19, col = presence_col)
+for (i in 1:dat_traps$N) {
+  lines ( rep(i, 2 ),
+          PI(post$knowledge[,i]) ,
+          col = rep(ifelse(dat_traps$has_knowledge[i] == 1, "deepskyblue4", "darkorange3")))
+}
+
+#check knowledge by age
+plot(d_trapppl$knowledge, apply(post$knowledge, 2, mean))
+year_seq <- seq(0,4,0.2)
+plot(x = dat_traps$age, 
+     y = apply(post$knowledge, 2, mean), 
+     xlim = c(0,4),
+     xlab = "Age" , 
+     ylab = "",
+     cex.lab=1.8 , 
+     cex.axis=1.8 ,
+     pch = ifelse(dat_traps$has_knowledge == 1, 19, 1) , 
+     cex = 1.5, 
+     col =  alpha( sex_col , 0.6 )  )
+for (i in 1:250) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,1] * ( 1 - exp(-post$ro_age[i,1] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( boycol, alpha = 0.1))}
+for (i in 1:250) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,2] * ( 1 - exp(-post$ro_age[i,2] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( girlcol, alpha = 0.1))}
+
+
+#plot of returns
+phi <-  mean(post$iota) +
+  mean(post$gamma) * log(1-exp(- mean(post$beta) * seq_trait  )) +
+  mean(post$zeta_k)* mean(post$knowledge) 
+psi <-  mean(post$xi) * mean(log(dat_shells$duration)) 
+samp_data <- rbern(length(seq_trait),  
+                   1 - exp (-mean(post$alpha) * exp(phi) * exp(psi)))
+
+plot(jitter(seq_trait) * mean(d_trapppl$age), samp_data, 
+     xlim = c(0,age_plot), ylim = c(0, 1), 
+     xlab = "Age", ylab = "p capture",
+     pch = 16, col = col.alpha("lawngreen", 0.2))
+for(i in 1:150){
+  phi <-  apply(post$iota,1,mean )[i] +
+    post$gamma[i] * log(1-exp(- post$beta[i] * seq_trait  )) +
+    post$zeta_k[i]*apply(post$knowledge, 1, mean)[i] 
+  
+  psi <-  post$xi[i] * mean(log(dat_traps$duration)) 
+  p <- 1 - exp (-post$alpha[i] * exp(phi) * exp(psi) )
+  lines( seq_trait * mean(d_trapppl$age),  p, 
+         col = col.alpha(trapcol, 0.2), lwd = 1)
+}
+points(jitter(d_trapppl$age[d_traps$index_id], amount = 0.5), 
+       jitter(d_traps$success, amount = 0.02), 
+       pch = 16, cex = ifelse(d_traps$success == 1, 0.8, 0.6), 
+       col = col.alpha(othercol, ifelse(d_traps$success == 1, 0.4, 0.1)))
+
+
+
+
+
+
+################3
+#################
+#################
+
+#SHELLS
+#create data frame
+d_shellppl <- real_data$shell_ppl
+d_shells <- real_data$shells
+d_shell_k <- real_data$shell_k
+d_trapppl <- real_data$trap_ppl
+d_traps <- real_data$traps
+d_trap_k <- real_data$trap_k
+
+
+#remove people for whom we have only anthropometric data
+d_shellppl <- d_shellppl %>% filter(!data == "anthropometrics")
+#d_shellppl <- d_shellppl %>% filter(!data == "knowledge")
+d_shell_k <- d_shell_k[1:nrow(d_shellppl),]
+d_trapppl <- d_trapppl %>% filter(!data == "anthropometrics")
+d_trapppl$age[which(is.na(d_trapppl$age))] <- 45
+#d_trapppl <- d_trapppl %>% filter(!data == "knowledge")
+d_trap_k <- d_trap_k[1:nrow(d_trapppl),]
+
+
+
+#add index variables
+#index and sort all individuals so we can loop across them
+d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
+d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
+#add index for individuals in the foraging data
+for ( i in 1:nrow(d_shells)){
+  d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
+}
+#sort knowledge data
+d_shell_k <- d_shell_k[ order(row.names(d_shell_k)), ]
+
+#same for traps
+d_trapppl$index_id <- as.integer(as.factor(d_trapppl$anonymeID))
+d_trapppl <- d_trapppl[order(d_trapppl$index_id),]
+for ( i in 1:nrow(d_traps)){
+  d_traps$index_id[i] <- d_trapppl$index_id[which ( d_trapppl$anonymeID == d_traps$anonymeID[i])]
+}
+d_trap_k <- d_trap_k[ order(row.names(d_trap_k)), ]
+
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),
+  M = nrow(d_shells),
+  ID_i= d_shells$index_id,
+  has_foraging = ifelse(d_shellppl$data == "shells", 1, 0),#[1:40],
+  has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),#[1:40], #vector of 0/1 for whether knowledge has to be imputed
+  returns = as.numeric(d_shells$returns)/1000,
+  age = (d_shellppl$age / mean(d_shellppl$age)),#[1:40],
+  age_int = d_shellppl$age,#[1:40],
+  sex = ifelse(d_shellppl$sex == "m", 1, 2),#[1:40], #make vector of sexes 1 = male 2 = female
+  #height 
+  #grip
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  #knowledge data
+  Q = 100,#ncol(d_shell_k),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  answers = d_shell_k[, 1:100], #all answers from freelist
+  prior_dirichlet = rep( 0.5, length (1:56 ) -1 ) #prior for Dirichlet
+)
+for (i in 1:length(dat_shells)) dat_shells[[i]][is.na(dat_shells[[i]])] <- -999
+
+#try tightening priors
+#making a positive version of knowledge
+#connect to foraging stuff
+m_shell_irt1 <- cstan( file= "models/other_models/2_shell_k3.stan" , data=dat_shells , 
+                       chains=3, cores = 3, iter = 500 )
+
+#m <- cmdstan_model("models/2_shell_k2.stan" )
+#standardizing knowledge IN the models???
+post <- extract.samples(m_shell_irt)
+sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
+presence_col <- ifelse(dat_shells$has_knowledge == "1", "deepskyblue4", "darkorange3")
+plot(NULL, xlim = c(1,dat_shells$N), ylim = c(0, 4))
+for (i in 1:dat_shells$N) {
+  points ( rep(i, 750 ),
+           post$knowledge_st[,i] ,
+           col = rep(ifelse(dat_shells$has_knowledge[i] == 1, col.alpha("deepskyblue", 0.3), col.alpha("darkgoldenrod1", 0.3))))
+}
+points(1:dat_shells$N, apply(post$knowledge_st, 2, mean), 
+       ylim = c(0, 4), pch = 19, col = presence_col)
+for (i in 1:dat_shells$N) {
+  lines ( rep(i, 2 ),
+          PI(post$knowledge_st[,i]) ,
+          col = rep(ifelse(dat_shells$has_knowledge[i] == 1, "deepskyblue4", "darkorange3")))
+}
+
+plot(d_shellppl$knowledge, apply(post$knowledge_st, 2, mean))
+year_eff <- apply(post$delta_j[,], 1, cumsum)
+year_seq <- seq(0,4,0.2)
+plot(x = dat_shells$age, 
+     y = apply(post$knowledge, 2, mean), 
+     xlim = c(0,4),
+     xlab = "Age" , 
+     ylab = "",
+     cex.lab=1.8 , 
+     cex.axis=1.8 ,
+     pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
+     cex = 1.5, 
+     col =  alpha( sex_col , 0.6 )  )
+for (i in 1:250) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,1] * ( 1 - exp(-post$ro_age[i,1] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( boycol, alpha = 0.1))}
+for (i in 1:250) {
+  lines(x = year_seq ,  
+        y = post$omega[i] + post$chi[i,2] * ( 1 - exp(-post$ro_age[i,2] * year_seq)) ,  
+        type = "l", 
+        col = col.alpha( girlcol, alpha = 0.1))}
+#plot of returns
+post_s <- post
+phi <-  exp(mean(post_s$iota) ) * (
+  (1-exp(- mean(post_s$beta) * seq_trait  )) ^ mean(post_s$gamma))
+psi <-   (mean(dat_shells$duration)) ^ mean(post_s$xi) * 
+  exp(mean(dat_shells$tide) * mean(post_s$tau))
+R <- exp (  log(mean(post_s$alpha) * phi * psi) + 
+              (mean(post_s$sigma)^2 /2))
+samp_data <- rlnorm(length(seq_trait),  
+                    log(mean(post_s$alpha) * phi * psi), 
+                    mean(post_s$sigma))
+
+plot(jitter(seq_trait) * mean(d_shellppl$age), samp_data, 
+     xlim = c(0,age_plot), ylim = c(0, max(dat_shells$returns)+1), 
+     xlab = "Age", ylab = "kg shellfish",
+     pch = 16, col = col.alpha("orange", 0.2))
+for(i in 1:150){
+  phi <-  exp(apply(post_s$iota,1,mean )[i] ) * (
+    (1-exp(- post_s$beta[i] * seq_trait  )) ^ post_s$gamma[i]
+  )
+  psi <-   (mean(dat_shells$duration)) ^ post_s$xi[i] * 
+    exp(mean(dat_shells$tide) * post_s$tau[i])
+  R <- exp (  log(post_s$alpha[i] * phi * psi) + 
+                (post_s$sigma[i]^2 /2))
+  lines( seq_trait * mean(d_shellppl$age),  R, 
+         col = col.alpha(shellcol, 0.2), lwd = 1)
+}
+points(jitter(d_shellppl$age[d_shells$index_id], amount = 0.4), 
+       as.numeric(d_shells$returns)/1000,
+       pch = 16, cex = 0.8, col = col.alpha(othercol, 0.4))
+
+#m_shell_all <- cstan( file= "models/2_shell_knowledgeinput.stan" , data=dat_shells , chains=3, cores = 3 )
+
+#TRAPS
+dat_traps <- list(
+  #foraging data
+  N = nrow(d_trapppl),                       #n individuals in total sample
+  M = nrow(d_traps),                         #n trip/person
+  ID_i= d_traps$index_id,                    #index of person of trip 
+  has_foraging = ifelse(d_trapppl$data == "traps", 1, 0),
+  has_knowledge = ifelse(is.na(d_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  success = d_traps$success,                 #whether trap captured something
+  age = (d_trapppl$age / mean(d_trapppl$age)),
+  sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+  #knowledge data
+  Q = ncol(d_trap_k),                        #n items in freelist
+  answers = d_trap_k                       #all answers from freelist
+)
+dat_traps <- list(
+  #foraging data
+  N = nrow(d_trapppl),                       #n individuals in total sample
+  M = nrow(d_traps),                         #n trip/person
+  ID_i= d_traps$index_id,                    #index of person of trip 
+  has_foraging = ifelse(d_trapppl$data == "traps", 1, 0),
+  has_knowledge = ifelse(is.na(d_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+  success = d_traps$success,                 #whether trap captured something
+  age = (d_trapppl$age / mean(d_trapppl$age)),
+  sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+  #knowledge data
+  Q = ncol(d_trap_k),                        #n items in freelist
+  answers = d_trap_k                       #all answers from freelist
+)
+
+dat_traps[["answers"]][is.na(dat_traps[["answers"]])] <- -999
+
+
+m_traps1 <- cstan( file= "models/3_trap.stan" , data=dat_traps , 
+                   chains=3, cores = 3, iter = 500 )
+
+
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),
+  M = nrow(d_shells),
+  ID_i= d_shells$index_id,
+  ID_k = d_shell_k_ppl$index_id, #make vector of length W where is reported index ID of individuals in foraging df
+  returns = as.numeric(d_shells$returns)/1000,
+  age = d_shellppl$age / mean(d_shellppl$age),
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  #height
+  #grip
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
+  #knowledge data
+  W = nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
+  Q = ncol(d_knowledge$Y_l),
+  O = 57 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
+  answers = d_knowledge$Y_l, #all answers from freelist
+  prior_dirichlet = rep( 0.5, length (0:40 ) -1 ) #prior for Dirichlet
+)
+m_shell_all <- cstan( file= "models/2_shell_knowledgeinput.stan" , data=dat_shells , chains=3, cores = 3 )
+# for (i in 1:nrow(d_shellppl)) {
+#   if(d_shellppl$anonymeID[i] %in% rownames(d_shell_k)) {
+#     d_shellppl$index_k[i] <- which (rownames(d_shell_k) == d_shellppl$anonymeID[i])
+#   } else {
+#     d_shellppl$index_k[i] <- NA
+#   }
+# }
+# for (i in 1:nrow(d_trapppl)) {
+#   if(d_trapppl$anonymeID[i] %in% rownames(d_trap_k)) {
+#     d_trapppl$index_k[i] <- which (rownames(d_trap_k) == d_trapppl$anonymeID[i])
+#   } else {
+#     d_trapppl$index_k[i] <- NA
+#   }
+# }
+
+dat_shells <- list(
+  #knowledge data
+  W = 20,#nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
+  Q = 50,#ncol(d_knowledge$Y_l),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age[1:20], #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2)[1:20],
+  answers = d_knowledge$Y_l[1:20, 1:50], #all answers from freelist
+  prior_dirichlet = rep( 2, length (1:56 ) -1 ) #prior for Dirichlet
+)
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),
+  M = nrow(d_shells),
+  ID_i= d_shells$index_id,
+  ID_k = ifelse( is.na(d_shellppl$position_k), -999, d_shellppl$position_k) , #make vector of length N where is reported position of individuals for whom we have knowledge in the knowledge list
+  returns = as.numeric(d_shells$returns)/1000,
+  age = d_shellppl$age / mean(d_shellppl$age),
+  age_int = d_shellppl$age ,
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  #height 
+  #grip
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
+  #knowledge data
+  W = nrow(d_shell_k), #n of individuals for whom we have knowledge
+  Q = ncol(d_shell_k),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
+  answers = d_shell_k, #all answers from freelist
+  prior_dirichlet = rep( 0.2, length (1:56 ) -1 ) #prior for Dirichlet
+)
+dat_shells <- list(
+  #foraging data
+  N = nrow(d_shellppl),
+  M = nrow(d_shells),
+  ID_i= d_shells$index_id,
+  ID_k = ifelse( is.na(d_shellppl$position_k), -999, d_shellppl$position_k) , #make vector of length N where is reported position of individuals for whom we have knowledge in the knowledge list
+  returns = as.numeric(d_shells$returns)/1000,
+  age = d_shellppl$age / mean(d_shellppl$age),
+  age_int = d_shellppl$age ,
+  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+  #height 
+  #grip
+  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+  tide = d_shells$tide_avg_depth,
+  knowledge_impute = ifelse(is.na(d_shellppl$knowledge), 1, 0), #vector of 0/1 for whether knowledge has to be imputed
+  #knowledge data
+  W = nrow(d_shell_k_ppl), #n of individuals for whom we have knowledge
+  Q = ncol(d_knowledge$Y_l),
+  O = 56 , #n of ages for which we want to impute knowledge > let's include said?!
+  age_irt = d_shell_k_ppl$age, #[W] vector of ages of ppl in irt
+  sex_irt = ifelse(d_shell_k_ppl$sex == "m", 1, 2),
+  answers = d_knowledge$Y_l, #all answers from freelist
+  prior_dirichlet = rep( 0.2, length (1:56 ) -1 ) #prior for Dirichlet
+)
+
+#m_shell_irt <- cstan( file= "models/irt_only_3.stan" , data=dat_shells , chains=3, cores = 3 )
+
+
+for (i in 1:150) {
+  lines(x = 1:nrow(year_eff),  
+        y = post$omega[i] + post$ro_age[i,1] * year_eff[,i], 
+        type = "l", 
+        col = col.alpha( boycol, alpha = 0.1))}
+for (i in 1:150) {
+  lines(x = 1:nrow(year_eff),  
+        y = post$omega[i] + post$ro_age[i,2] * year_eff[,i], 
+        type = "l", 
+        col = col.alpha( girlcol, alpha = 0.1))}
+lines( x = 1:nrow(year_eff),  
+       y = mean(post$omega) + mean(post$ro_age[,1]) * apply(year_eff, 1, mean), 
+       type = "l", 
+       col = col.alpha( boycol, alpha = 1), lwd = 1.5 )
+lines( x = 1:nrow(year_eff),  
+       y = mean(post$omega) + mean(post$ro_age[,2]) * apply(year_eff, 1, mean), 
+       type = "l", 
+       col = col.alpha( girlcol, alpha = 1), lwd = 1.5 )
+
+#for height
+# #diff height outcome scale
+# phi <-  apply(post$iota,1,mean )  +
+#         post$gamma * log(1-exp(- post$beta * 20  )) + 
+#         post$eta_h* min(dat_shells$height[which(dat_shells$height >= 0)])   
+# 
+# psi <-  post$xi * mean(log(dat_shells$duration)) + 
+#         post$tau* mean(dat_shells$tide)
+# min_h <- exp (mean(log(post$alpha)) + phi + psi + 
+#               (mean(post$sigma)^2 /2))
+# phi <-  apply(post$iota,1,mean )  +
+#         post$gamma * log(1-exp(- post$beta * 20  )) + 
+#         post$eta_h* max(dat_shells$height)   
+# 
+# psi <-  post$xi * mean(log(dat_shells$duration)) + 
+#         post$tau* mean(dat_shells$tide)
+# max_h <- exp (mean(log(post$alpha)) + phi + psi + 
+#               (mean(post$sigma)^2 /2))
+# diff_h1 <- max_h - min_h
+# plot(density(diff_h1))
+# 
+# 
+
+#subset data
+dc_shellppl <- real_data$shell_ppl[complete.cases(real_data$shell_ppl$knowledge),]
+dc_shellppl <- dc_shellppl[complete.cases(dc_shellppl$height),]
+dc_shell_k <- real_data$shell_k[which(rownames(real_data$shell_k) %in% dc_shellppl$anonymeID),]
+dc_shells <- real_data$shells[which(real_data$shells$anonymeID %in% dc_shellppl$anonymeID),]
+
+dc_trapppl <- real_data$trap_ppl[complete.cases(real_data$trap_ppl$knowledge),]
+dc_traps <- real_data$traps[which(real_data$traps$anonymeID %in% dc_trapppl$anonymeID),]
+dc_trap_k <- real_data$trap_k[which(rownames(real_data$trap_k) %in% dc_trapppl$anonymeID),]
+
+#make indexes
+dc_shellppl$index_id <- as.integer(as.factor(dc_shellppl$anonymeID))
+dc_shellppl <- dc_shellppl[order(dc_shellppl$index_id),]
+dc_shells$index_id <- as.integer(as.factor(dc_shells$anonymeID))
+dc_shell_k <- dc_shell_k[ order(as.factor(row.names(dc_shell_k))), ]
+
+dc_trapppl$index_id <- as.integer(as.factor(dc_trapppl$anonymeID))
+dc_trapppl <- dc_trapppl[order(dc_trapppl$index_id),]
+dc_traps$index_id <- as.integer(as.factor(dc_traps$anonymeID))
+dc_trap_k <- dc_trap_k[ order(as.factor(row.names(dc_trap_k))), ]
+
+#extract samples
+post_s <- extract.samples(m_shell_all)
+post_t <- extract.samples(m_trap_all)
+#make this code legible :o
+#shells
+#knowledge
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    min(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+min_k <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+#rlnorm(length(seq_trait),  #change to expectation, no simulation
+#                      log(post_s$alpha * phi * psi), 
+#                      post_s$sigma)
+
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    max(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+max_k <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+diff_k <- max_k - min_k
+plot(density(diff_k))
+
+#grip
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    min(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+min_g <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    max(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+max_g <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+diff_g <- max_g - min_g
+plot(density(diff_g))
+
+#height
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    min(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+min_h <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    max(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+max_h <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+diff_h <- max_h - min_h
+plot(density(diff_h))
+
+#tide
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(min(dat_shells$tide) * post_s$tau)
+min_t <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (mean(dat_shells$L)) ^ post_s$xi * 
+  exp(max(dat_shells$tide) * post_s$tau)
+max_t <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+diff_t <- max_t - min_t
+plot(density(diff_t))
+
+#duration
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (min(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+min_l <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+
+phi <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+psi <-   (max(dat_shells$L)) ^ post_s$xi * 
+  exp(mean(dat_shells$tide) * post_s$tau)
+max_l <- exp (log(mean(post_s$alpha) * phi * psi) + 
+                (mean(post_s$sigma)^2 /2))
+diff_l <- max_l - min_l
+plot(density(diff_l))
+
+
+diffs <- data.frame(variable = c( rep("knowledge", length(diff_k)),
+                                  rep("grip", length(diff_g)),
+                                  rep("height", length(diff_h)),
+                                  rep("duration", length(diff_l)),
+                                  rep("tide", length(diff_t))),
+                    kg_shellfish =  c(diff_k, diff_g, diff_h, diff_l, -diff_t)
+)
+
+diffs <- diffs %>% 
+  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+ggplot(diffs, aes(x = kg_shellfish, y = variable)) + 
+  geom_vline(xintercept = 0, colour = col.alpha("grey40", 0.3))+
+  geom_density_ridges(fill = col.alpha("cornflowerblue", 0.3), 
+                      colour = "cornflowerblue") +
+  labs(x = "max-min kg shellfish", y = "")+
+  xlim(-0.5, 8)+
+  theme_classic()
+
+
+#traps
+#knowledge
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    min(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (mean(dat_traps$L)) ^ post_t$xi 
+min_k <- 1 - exp ( - post_t$alpha * phi * psi)
+
+
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    max(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (mean(dat_traps$L)) ^ post_t$xi 
+max_k <- 1 - exp ( - post_t$alpha * phi * psi)
+
+diff_k <- max_k - min_k
+
+#grip
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    min(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (mean(dat_traps$L)) ^ post_t$xi 
+min_g <- 1 - exp ( - post_t$alpha * phi * psi)
+
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    max(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (mean(dat_traps$L)) ^ post_t$xi 
+max_g <- 1 - exp ( - post_t$alpha * phi * psi)
+diff_g <- max_g - min_g
+
+#height
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    min(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (mean(dat_traps$L)) ^ post_t$xi 
+min_h <- 1 - exp ( - post_t$alpha * phi * psi)
+
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    max(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (mean(dat_traps$L)) ^ post_t$xi
+max_h <- 1 - exp ( - post_t$alpha * phi * psi)
+diff_h <- max_h - min_h
+
+#duration
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (min(dat_traps$L)) ^ post_t$xi 
+min_l <- 1 - exp ( - post_t$alpha * phi * psi)
+
+phi <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+psi <-   (max(dat_traps$L)) ^ post_t$xi 
+max_l <- 1 - exp ( - post_t$alpha * phi * psi)
+diff_l <- max_l - min_l
+
+diffs <- data.frame(variable = c( rep("knowledge", length(diff_k)),
+                                  rep("grip", length(diff_g)),
+                                  rep("height", length(diff_h)),
+                                  rep("duration", length(diff_l))),
+                    p_capture =  c(diff_k, diff_g, diff_h, diff_l)
+)
+
+diffs <- diffs %>% 
+  mutate( variable = fct_reorder(.f = variable, .x = p_capture, .fun = mean))
+ggplot(diffs, aes(x = p_capture, y = variable)) + 
+  geom_vline(xintercept = 0, colour = col.alpha("grey40", 0.3))+
+  geom_density_ridges(fill = col.alpha("cornflowerblue", 0.3), 
+                      colour = "cornflowerblue") +
+  labs(x = "max-min p of trap capturing", y = "")+
+  theme_classic()
+
+#######################################
+#effect of variables in shells vs traps
+#######################################
+#shells
+#knowledge
+phi_min_k <-  apply(post_t$iota,1,mean )  +
+  post_t$gamma * log(1-exp(- post_t$beta * 20  )) +
+  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+
+phi_min_k <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    min(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+
+phi_max_k <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    max(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+phi_k <- phi_max_k - phi_min_k
+
+#grip
+phi_min_g <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    min(dat_shells$G) ^ post_s$theta_g 
+)
+
+phi_max_g <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    mean(dat_shells$H) ^ post_s$eta_h *
+    max(dat_shells$G) ^ post_s$theta_g 
+)
+phi_g <- phi_max_g - phi_min_g
+
+#height
+phi_min_h <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    min(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+
+phi_max_h <-  exp(apply(post_s$iota,1,mean ) ) * (
+  (1-exp(- post_s$beta * 20  )) ^ post_s$gamma *
+    mean(apply(post_s$K, 2, mean)) ^ post_s$zeta_k  *
+    max(dat_shells$H) ^ post_s$eta_h *
+    mean(dat_shells$G) ^ post_s$theta_g 
+)
+phi_h <- phi_max_h - phi_min_h
+diffs_shells <- data.frame(variable = c( rep("knowledge", length(phi_k)),
+                                         rep("grip", length(phi_g)),
+                                         rep("height", length(phi_h))),
+                           phi =  c(phi_k, phi_g, phi_h),
+                           type = "shells"
+)
+
+
+#traps
+#knowledge
+phi_min_k <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    min(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+
+phi_max_k <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    max(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+phi_k <- phi_max_k - phi_min_k
+
+#grip
+phi_min_g <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    min(dat_traps$G) ^ post_t$theta_g 
+)
+
+phi_max_g <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    mean(dat_traps$H) ^ post_t$eta_h *
+    max(dat_traps$G) ^ post_t$theta_g 
+)
+phi_g <- phi_max_g - phi_min_g
+
+#height
+phi_min_h <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    min(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+
+phi_max_h <-  exp(apply(post_t$iota,1,mean ) ) * (
+  (1-exp(- post_t$beta * 20  )) ^ post_t$gamma *
+    mean(apply(post_t$K, 2, mean)) ^ post_t$zeta_k  *
+    max(dat_traps$H) ^ post_t$eta_h *
+    mean(dat_traps$G) ^ post_t$theta_g 
+)
+phi_h <- phi_max_h - phi_min_h
+
+diffs_traps <- data.frame(variable = c( rep("knowledge_t", length(phi_k)),
+                                        rep("grip_t", length(phi_g)),
+                                        rep("height_t", length(phi_h))),
+                          phi =  c(phi_k, phi_g, phi_h),
+                          type = "traps"
+)
+diffs <- rbind(diffs_shells, diffs_traps)
+# diffs <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = p, .fun = mean))
+ggplot(diffs, aes(x = phi, y = variable, fill = type)) + 
+  geom_vline(xintercept = 0, colour = col.alpha("grey40", 0.3))+
+  geom_density_ridges(colour = col.alpha("cornflowerblue", 0.3)) +
+  xlim(-0.1,2)+
+  theme_classic()
+
