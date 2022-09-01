@@ -1,10 +1,10 @@
 #load packages and simulation function
-library(rethinking)
-library(rlist)
-library(tidyverse)
-library(evoper)#for magnitude
-library(cowplot)#grid plots
-source("1_simulation/1_simulation.R")
+# library(rethinking)
+# library(rlist)
+# library(tidyverse)
+# library(evoper)#for magnitude
+# library(cowplot)#grid plots
+# source("1_simulation/1_simulation.R")
 # 
 # 
 # trapcol <- "#52b502" #"#5ca81e"
@@ -879,844 +879,844 @@ for(j in 1:nrow(pars)){
   
 }
 
-#############################################################################
-##############################################################################
-###############################################################################
-#Everything below might be crap
-
-
-
-#SHELLS
-################
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* min(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* min(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_k <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* max(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* max(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_k <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sk <- max_k - min_k
-diffs_phi$sk <- phi_max - phi_min
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* min(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_h <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* max(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_h <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sh <- max_h - min_h
-diffs_phi$sh <- phi_max - phi_min
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* min(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_g <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* max(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-phi_max <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_g <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sg <- max_g - min_g
-diffs_phi$sg <- phi_max - phi_min
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * min(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_d <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * max(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_d <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sd <- max_d - min_d
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* min(dat_shells$tide)
-min_t <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* max(dat_shells$tide)
-max_t <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$st <- min_t - max_t
-
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out)),
-                                  rep("tide", nrow(diffs_out))),
-                    kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
-)
-
-diffs_shells <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
-
-
-#TRAPS
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* min(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* min(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* max(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* max(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$tk <- (max_k - min_k)[1:length(post_s$alpha)]
-diffs_phi$tk <- (phi_max - phi_min)[1:length(post_s$alpha)]
-
-
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* min(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-min_h <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* max(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-max_h <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$th <- (max_h - min_h)[1:length(post_s$alpha)]
-diffs_phi$th <- (phi_max - phi_min)[1:length(post_s$alpha)]
-
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* min(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-min_g <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* max(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-max_g <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$tg <- (max_g - min_g)[1:length(post_s$alpha)]
-diffs_phi$tg <- (phi_max - phi_min)[1:length(post_s$alpha)]
-
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * min(log(dat_traps$duration)) 
-min_d <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * max(log(dat_traps$duration)) 
-max_d <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$td <- (max_d - min_d )[1:length(post_s$alpha)]
-
-
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out))),
-                    p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
-)
-
-diffs_traps <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
-###################################
-
-out_shells_1 <- ggplot(diffs_shells, aes(x = variable, y = kg_shellfish)) + 
-  geom_hline(yintercept = 0, color = "grey90") +
-  geom_violin(fill = col.alpha(shellcol, 0.6),
-              colour = shellcol) +
-  labs(y = "kg shellfish difference", x = "")+
-  ylim(-4, 6)+
-  theme_classic()
-
-out_traps_1 <- ggplot(diffs_traps, aes(x = variable, y = p_success)) + 
-  geom_hline(yintercept = 0, color = "grey90") +
-  geom_violin(fill = col.alpha(trapcol, 0.6),
-              colour = trapcol) +
-  labs(y = "p_success difference", x = "")+
-  ylim(-1, 1)+
-  theme_classic()
-
-v_diffs_phi <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
-                                        rep("grip", nrow(diffs_phi)),
-                                        rep("height", nrow(diffs_phi)),
-                                        rep("knowledge", nrow(diffs_phi)),
-                                        rep("grip", nrow(diffs_phi)),
-                                        rep("height", nrow(diffs_phi))),
-                          p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
-                          foraging_type = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
-
-
-phi_trait_1 <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = foraging_type , color = foraging_type) )+ 
-  geom_hline(yintercept = 0, color = "grey90") +
-  geom_violin(trim=FALSE)+
-  scale_fill_manual("foraging_type",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.6), col.alpha(trapcol, 0.6 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  scale_color_manual("foraging_type",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  labs(x = "", y = "phi difference")+
-  ylim(-10, 10)+
-  theme_classic()+
-  theme(legend.position="top")
-
-alphas
-for(i in 1:nrow(pars)){
-  png(paste("../plots/validate_model/alldiffs_combined_irt301000alpha02_",i ,".png", sep = ""), 
-    height = 14, width = 16, units = "cm", res = 500)
-  plots <- align_plots(phi_trait_1, out_shells_1, align = 'v', axis = 'l')
-  # then build the bottom row
-  bottom_row <- plot_grid(plots[[2]], out_traps_1, labels = c('B', 'C'), label_size = 12)
-
-  # then combine with the top row for final plot
-  plot_grid(plots[[1]], bottom_row, labels = c(paste(colnames(pars), pars[i,],collapse=","), ''), label_size = 12, ncol = 1)
-  dev.off()
-
-}
-
-####################
-#estimate missing data
-#######################
-
-#make plots
-sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
-presence_col <- ifelse(dat_shells$has_knowledge == "1", "deepskyblue4", "darkorange3")
-
-#check knowledge by age
-year_seq <- seq(0,4,0.2)
-plot(x = dat_shells$age * mean(d$age, na.rm = TRUE), 
-     y = apply(post_s$knowledge, 2, median), 
-     xlim = c(0,40),
-     xlab = "Age" , 
-     ylab = "",
-     cex.lab=1.8 , 
-     cex.axis=1.8 ,
-     pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
-     cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
-for (i in 1:250) {
-  lines(x = year_seq * mean(d$age, na.rm = TRUE),  
-        y = post_s$omega[i] + post_s$chi[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * year_seq)) ,  
-        type = "l", 
-        col = col.alpha( boycol, alpha = 0.1))}
-for (i in 1:250) {
-  lines(x = year_seq * mean(d$age, na.rm = TRUE),  
-        y = post_s$omega[i] + post_s$chi[i,2] * ( 1 - exp(-post_s$ro_age[i,2] * year_seq)) ,  
-        type = "l", 
-        col = col.alpha( girlcol, alpha = 0.1))}
-
-
-
-
-plot(x = dat_shells$age, 
-     y = apply(post_s$height_merged, 2, mean), 
-     xlim = c(0,4),
-     xlab = "Age" , 
-     ylab = "Height",
-     cex.lab=1.8 , 
-     cex.axis=1.8 ,
-     pch = ifelse(dat_shells$has_height == 1, 19, 1) , 
-     cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
-for (i in 1:250) {
-  lines(x = year_seq ,  
-        y = dat_shells$min_height + post_s$kappa[i,1] * ( 1 - exp(-post_s$lambda[i,1] * year_seq)) ,  
-        type = "l", 
-        col = col.alpha( boycol, alpha = 0.1))}
-for (i in 1:250) {
-  lines(x = year_seq ,  
-        y = dat_shells$min_height + post_s$kappa[i,2] * ( 1 - exp(-post_s$lambda[i,2] * year_seq)) ,  
-        type = "l", 
-        col = col.alpha( girlcol, alpha = 0.1))}
-
-
-
-plot(x = dat_shells$age, 
-     y = apply(post_s$grip_merged, 2, mean), 
-     xlim = c(0,4),
-     xlab = "Age" , 
-     ylab = "grip",
-     cex.lab=1.8 , 
-     cex.axis=1.8 ,
-     pch = ifelse(dat_shells$has_grip == 1, 19, 1) , 
-     cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
-for (i in 1:250) {
-  lines(x = year_seq ,  
-        y = post_s$min_grip[i] + post_s$epsilon[i,1] * ( 1 - exp(-post_s$upsilon[i,1] * year_seq)) ,  
-        type = "l", 
-        col = col.alpha( boycol, alpha = 0.1))}
-for (i in 1:250) {
-  lines(x = year_seq ,  
-        y = post_s$min_grip[i] + post_s$epsilon[i,2] * ( 1 - exp(-post_s$upsilon[i,2] * year_seq)) ,  
-        type = "l", 
-        col = col.alpha( girlcol, alpha = 0.1))}
-
-
-#prepare data
-dat <- list(
-  M = d$M,
-	notZ = d$notZ,
-	R = d$R,
-	L = d$L/mean(d$L),
-	K = d$K[d$ID_trip]/mean(d$K[d$ID_trip]),
-	B = d$B[d$ID_trip]/mean(d$B[d$ID_trip])
-)
-
-#fit model
-m <- cstan( file= "models/other_models/model.stan" , data=dat , chains=1 )
-precis(m) #looks good!
-tracerplot(m) # parameters for returns not exploring much the space?
-par(mfrow = c(1,1))
-
-#CHECK MODEL FIT
-#below my attempts at plotting the results of the model
-#not zero seems fine, amount of results I'm doing something wrong
-################
-x <- seq(0, 3, 0.1) #trait
-post <- extract.samples(m)
-
-#Not zero
-plot(d$L/mean(d$L), d$notZ, pch = 16, col = col.alpha("grey30", 0.2), xlim = c(0,3))
-for (i in 1:500) lines(x, 1 - (inv_logit (  2 * ( post$c[i] - 
-                                exp( post$z_l[i] * log(x)  )))) , col = col.alpha("orange", 0.4))
-
-plot(d$K[d$ID_trip]/mean(d$K), d$notZ, pch = 16, col = col.alpha("grey30", 0.2), xlim = c(0,3))
-for (i in 1:500) lines(x, 1 - (inv_logit (  2 * ( post$c[i] - 
-                                exp( post$z_k[i] * log(x)  )))) , col = col.alpha("orange", 0.4))
-
-plot(d$B[d$ID_trip]/mean(d$B), d$notZ, pch = 16, col = col.alpha("grey30", 0.2), xlim = c(0,3))
-for (i in 1:500) lines(x, 1 - (inv_logit (  2 * ( post$c[i] - 
-                                exp( post$z_b[i] * log(x)  )))) , col = col.alpha("orange", 0.4))
-#Amount of results
-plot(d$L/mean(d$L), d$R, pch = 16, col = col.alpha("grey30", 0.2), ylim=c(0,10))
-for (i in 1:500) {
-  mu <- exp ( exp( post$r_l[i] * log(x)) + ((post$sigma[i]^2) /2))
-  lines(x, mu, col = col.alpha("orange", 0.4))
-}
-
-plot(dat$K, d$R, pch = 16, col = col.alpha("grey30", 0.2), ylim=c(0,10))
-for (i in 1:500) {
-  mu <- exp ( exp( post$r_k[i] * log(x)) + ((post$sigma[i]^2) /2))
-  lines(x, mu, col = col.alpha("orange", 0.4))
-}
-
-plot(dat$B, d$R, pch = 16, col = col.alpha("grey30", 0.2), ylim=c(0,10))
-for (i in 1:500) {
-  mu <- exp ( exp( post$r_b[i] * log(x)) + ((post$sigma[i]^2) /2))
-  lines(x, mu, col = col.alpha("orange", 0.4))
-}
-################
-
-#FIT MODEL MULTIPLE TIMES
-#plots recovered parameters versus estimated parameters 
-#in gray the parameters for non zero returns, orange for amount of returns
-#seems to be doing a good job of recovering the parameters!
-###############
-#define list of parameter combinations
-s <- list ( c(2, 0.1, 3),
-             c(2, 0.5, 0.9),
-             c(2, 0.1, 3),
-             c(0.8, 0.2, 0.3)
-             )
-age <- c(T,T,F,F)  #whether age has an effect at all on knowledge and body. Tests whether correlation between K and B impairs the model ability to distinguish between the two
-a <- c(3, 0.5, 1, 1) #effect of age on knowledge and body
-labsss <- c( "big age effect on K & B", "small age effect on K & B", "no age effect on K & B", "no age effect on K & B")
-par(mfrow = c(2,2))
-
-#run 5 models for each of the 4 combinations of parameters
-for (i in 1:4) {
-  zs <- s[[i]]
-  rs <- s[[i]] #assign set of values for simulation
-  plot( NULL, xlim = c(0,3.1), ylim = c(0,3.1),
-       xlab = "simulated effect", ylab = "estimated effect",
-       main = labsss[i])
-
-  for(j in 1:5){
-    d <- sim_data(100, 300, 
-              zl = zs[1], zk = zs[2], zb = zs[3],
-              rl = rs[1], rk = rs[2], rb = rs[3],
-              ak = 0.5, ab = 0.5, age = a[i]
-              )
-
-    dat <- list(
-              M = d$M,
-            	notZ = d$notZ,
-            	R = d$R,
-            	L = d$L/mean(d$L),
-            	K = d$K[d$ID_trip]/mean(d$K[d$ID_trip]),
-            	B = d$B[d$ID_trip]/mean(d$B[d$ID_trip])
-      )
-
-      m <- cstan( file= "models/other_models/model.stan" , data=dat , chains=1 )
-
-      prec <- precis(m)
-      post <- extract.samples(m)
-
-      points( zs-0.01, prec$mean[2:4], xlim = c(0,1.5), ylim = c(0,1.5), pch = c (15, 16, 17), col = col.alpha("gray40", 0.8))
-      points( rs+0.01, prec$mean[5:7], xlim = c(0,1.5), ylim = c(0,1.5), pch = c (15, 16, 17), col = col.alpha("orange", 0.8))
-      abline(0,1)
-    }
-}
-
-par(mfrow = c(1,1))
-###############
-
-
-
-
-
-for (i in 1:5) {
-  phi_min <-  apply(post_s$iota,1,mean )  +
-    post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-    post_s$theta_g* ifelse(i == 1 , log(0.5), mean(log(dat_shells$grip), na.rm = TRUE))  +
-    post_s$eta_h* ifelse(i == 2 , log(0.5), mean(log(dat_shells$height), na.rm = TRUE)) +
-    #post_s$zeta_k* * ifelse(i == 3, mean(log(dat_shells$knowledge), na.rm = TRUE) , 0.5)
-    post_s$zeta_k* ifelse(i == 3 , mean(apply(post_s$knowledge, 2, mean)) - sd(apply(post_s$knowledge, 2, mean)), mean(apply(post_s$knowledge, 2, mean)) )
-  psi_min <-  post_s$xi * ifelse(i == 4 , log(0.5), mean(log(dat_shells$duration), na.rm = TRUE))+
-    post_s$tau*0
-  min_k <- exp (log(post_s$alpha) + phi_min + psi_min +
-                (post_s$sigma^2 /2))
-  phi_max <-  apply(post_s$iota,1,mean )  +
-    post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-    post_s$theta_g* ifelse(i == 1 , log(1.5), mean(log(dat_shells$grip), na.rm = TRUE))  +
-    post_s$eta_h* ifelse(i == 2 , log(1.5), mean(log(dat_shells$height), na.rm = TRUE)) +
-    #post_s$zeta_k* * ifelse(i == 3, mean(log(dat_shells$knowledge), na.rm = TRUE) , 0.5)
-    post_s$zeta_k* ifelse(i == 3 , mean(apply(post_s$knowledge, 2, mean)) + sd(apply(post_s$knowledge, 2, mean)), mean(apply(post_s$knowledge, 2, mean)) )
-  psi_max <-  post_s$xi * ifelse(i == 4 , log(1.5), mean(log(dat_shells$duration), na.rm = TRUE))+
-    post_s$tau*0
-  max_k <- exp (log(post_s$alpha) + phi_max + psi_max +
-                  (post_s$sigma^2 /2))
-  diffs_out[i] <- max_k - min_k
-  if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
-}
-
-#SHELLS
-################
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* min(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* (mean(apply(post_s$knowledge, 2, mean)) - sd(apply(post_s$knowledge, 2, mean)))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_k <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* max(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* (mean(apply(post_s$knowledge, 2, mean)) + sd(apply(post_s$knowledge, 2, mean)))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_k <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sk <- max_k - min_k
-diffs_phi$sk <- phi_max - phi_min
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* (mean(log(dat_shells$height), na.rm = TRUE) - sd(log(dat_shells$height), na.rm = TRUE)) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_h <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* (mean(log(dat_shells$height), na.rm = TRUE) + sd(log(dat_shells$height), na.rm = TRUE)) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_h <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sh <- max_h - min_h
-diffs_phi$sh <- phi_max - phi_min
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* (mean(log(dat_shells$grip), na.rm = TRUE) - sd(log(dat_shells$grip), na.rm = TRUE) )+
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-min_g <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* (mean(log(dat_shells$grip), na.rm = TRUE) + sd(log(dat_shells$grip), na.rm = TRUE) )+
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-phi_max <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* mean(dat_shells$tide)
-max_g <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sg <- max_g - min_g
-diffs_phi$sg <- phi_max - phi_min
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * (mean(log(dat_shells$duration)) - sd(log(dat_shells$duration)))+
-  post_s$tau* mean(dat_shells$tide)
-min_d <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * (mean(log(dat_shells$duration)) + sd(log(dat_shells$duration)))+
-  post_s$tau* mean(dat_shells$tide)
-max_d <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$sd <- max_d - min_d
-
-phi_min <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* (mean(dat_shells$tide) - sd(dat_shells$tide))
-min_t <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-phi_max <-  apply(post_s$iota,1,mean )  +
-  post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-  post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
-  post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
-  post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(dat_shells$duration)) +
-  post_s$tau* (mean(dat_shells$tide) + sd(dat_shells$tide))
-max_t <- exp (log(post_s$alpha) + phi_max + psi +
-                (post_s$sigma^2 /2))
-diffs_out$st <- min_t - max_t
-
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out)),
-                                  rep("tide", nrow(diffs_out))),
-                    kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
-)
-
-diffs_shells <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
-
-
-#TRAPS
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* min(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* min(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* max(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* max(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$tk <- (max_k - min_k)[1:length(post_s$alpha)]
-diffs_phi$tk <- (phi_max - phi_min)[1:length(post_s$alpha)]
-
-
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* min(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-min_h <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* max(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-max_h <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$th <- (max_h - min_h)[1:length(post_s$alpha)]
-diffs_phi$th <- (phi_max - phi_min)[1:length(post_s$alpha)]
-
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* min(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-min_g <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* max(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * mean(log(dat_traps$duration)) 
-max_g <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$tg <- (max_g - min_g)[1:length(post_s$alpha)]
-diffs_phi$tg <- (phi_max - phi_min)[1:length(post_s$alpha)]
-
-phi_min <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * min(log(dat_traps$duration)) 
-min_d <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
-phi_max <-  apply(post_t$iota,1,mean )  +
-  post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-  post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
-  post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
-  #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
-  post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
-psi <-  post_t$xi * max(log(dat_traps$duration)) 
-max_d <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
-diffs_out$td <- (max_d - min_d )[1:length(post_s$alpha)]
-
-
-##############
-#trying to improve the function for these stupid plots
-#############
-
-#max - min - with average trait as effect of age only
-sds <- c( sd(log(dat_shells$grip)),
-          sd(log(dat_shells$height)), 
-          sd(apply(post_s$knowledge, 2, mean)), #sd(log(dat_shells$knowledge))
-          sd(log(dat_shells$duration)),
-          sd(dat_shells$tide))
-
-for (i in 1:5) {
-  phi_min <-  apply(post_s$iota,1,mean )  +
-    post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-    ifelse(i == 1, post_s$theta_g * (mean(log(dat_shells$grip) , na.rm = TRUE)- sds[i]),
-           ifelse(i == 2, post_s$eta_h * (mean(log(dat_shells$height), na.rm = TRUE) - sds[i]),
-                  ifelse(i == 3, post_s$zeta_k *(mean(apply(post_s$knowledge, 2, mean)) - sds[i]), 0)))
-  psi_min <-  ifelse(i == 4 , post_s$xi * (mean(log(dat_shells$duration) , na.rm = TRUE)- sds[i]), mean(log(dat_shells$duration), na.rm = TRUE))+
-    post_s$tau*0
-  min_r <- exp (log(post_s$alpha) + phi_min + psi_min +
-                  (post_s$sigma^2 /2))
-  phi_max <-  apply(post_s$iota,1,mean )  +
-    post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-    ifelse(i == 1, post_s$theta_g * (mean(log(dat_shells$grip), na.rm = TRUE) + sds[i]),
-           ifelse(i == 2, post_s$eta_h * (mean(log(dat_shells$height), na.rm = TRUE) + sds[i]),
-                  ifelse(i == 3, post_s$zeta_k *(mean(apply(post_s$knowledge, 2, mean)) + sds[i]), 0)))
-  psi_max <-  ifelse(i == 4 , post_s$xi * (mean(log(dat_shells$duration), na.rm = TRUE) + sds[i]), mean(log(dat_shells$duration), na.rm = TRUE))+
-    post_s$tau*0
-  max_r <- exp (log(post_s$alpha) + phi_max + psi_max +
-                  (post_s$sigma^2 /2))
-  diffs_out[i] <- max_r - min_r
-  if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
-}
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out)),
-                                  rep("tide", nrow(diffs_out))),
-                    kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
-)
-
-diffs_shells <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
-
-sds <- c( sd(log(dat_traps$grip)),
-          sd(log(dat_traps$height)), 
-          sd(apply(post_t$knowledge, 2, mean)), #sd(log(dat_traps$knowledge))
-          sd(log(dat_traps$duration)))
-
-for (i in 1:4) {
-  phi_min <-  apply(post_t$iota,1,mean )  +
-    post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-    ifelse(i == 1, post_t$theta_g*(mean(log(dat_traps$grip), na.rm = TRUE) - sds[i]),
-           ifelse(i == 2, post_t$eta_h * (mean(log(dat_traps$height), na.rm = TRUE) - sds[i]),
-                  ifelse(i == 3, post_t$zeta_k *(mean(apply(post_t$knowledge, 2, mean)) - sds[i]), 0)))
-  psi_min <-  ifelse(i == 4 , post_t$xi * (mean(log(dat_traps$duration), na.rm = TRUE) - sds[i]), mean(log(dat_traps$duration), na.rm = TRUE))
-  min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi_min))
-  phi_max <-  apply(post_t$iota,1,mean )  +
-    post_t$gamma * log(1-exp(- post_t$beta * 1.6  ))  +
-    ifelse(i == 1, post_t$theta_g*(mean(log(dat_traps$grip), na.rm = TRUE) + sds[i]),
-           ifelse(i == 2, post_t$eta_h * (mean(log(dat_traps$height), na.rm = TRUE) + sds[i]),
-                  ifelse(i == 3, post_t$zeta_k *(mean(apply(post_t$knowledge, 2, mean)) + sds[i]), 0)))
-  psi_max <-  ifelse(i == 4 , post_t$xi * (mean(log(dat_traps$duration), na.rm = TRUE) + sds[i]), mean(log(dat_traps$duration), na.rm = TRUE))
-  max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi_max))
-  diffs_out$tk <- max_k - min_k
-  diffs_phi$tk <- phi_max - phi_min
-  diffs_out[i + 5] <- max_k - min_k
-  if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
-}
-
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out))),
-                    p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
-)
-
-
-
-#max - min - with average trait as effect of age only
-for (i in 1:5) {
-  phi_min <-  apply(post_s$iota,1,mean )  +
-    post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-    ifelse(i == 1, post_s$theta_g * min(log(dat_shells$grip), na.rm = TRUE),
-           ifelse(i == 2, post_s$eta_h * min(log(dat_shells$height), na.rm = TRUE),
-                  ifelse(i == 3, post_s$zeta_k *min(apply(post_s$knowledge, 2, mean)), 0)))
-  psi_min <-  ifelse(i == 4 , post_s$xi * min(log(dat_shells$duration), na.rm = TRUE), mean(log(dat_shells$duration), na.rm = TRUE))+
-    post_s$tau*0
-  min_r <- exp (log(post_s$alpha) + phi_min + psi_min +
-                  (post_s$sigma^2 /2))
-  phi_max <-  apply(post_s$iota,1,mean )  +
-    post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
-    ifelse(i == 1, post_s$theta_g * max(log(dat_shells$grip), na.rm = TRUE),
-           ifelse(i == 2, post_s$eta_h * max(log(dat_shells$height), na.rm = TRUE),
-                  ifelse(i == 3, post_s$zeta_k *max(apply(post_s$knowledge, 2, mean)), 0)))
-  psi_max <-  ifelse(i == 4 , post_s$xi * max(log(dat_shells$duration), na.rm = TRUE), mean(log(dat_shells$duration), na.rm = TRUE))+
-    post_s$tau*0
-  max_r <- exp (log(post_s$alpha) + phi_max + psi_max +
-                  (post_s$sigma^2 /2))
-  diffs_out[i] <- max_r - min_r
-  if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
-}
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out)),
-                                  rep("tide", nrow(diffs_out))),
-                    kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
-)
-
-diffs_shells <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
-
-
-for (i in 1:4) {
-  phi_min <-  apply(post_t$iota,1,mean )  +
-    post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
-    ifelse(i == 1, post_t$theta_g*min(log(dat_traps$grip), na.rm = TRUE),
-           ifelse(i == 2, post_t$eta_h * min(log(dat_traps$height), na.rm = TRUE),
-                  ifelse(i == 3, post_t$zeta_k *min(apply(post_t$knowledge, 2, mean)), 0)))
-  psi_min <-  ifelse(i == 4 , post_t$xi * min(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE))
-  min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi_min))
-  phi_max <-  apply(post_t$iota,1,mean )  +
-    post_t$gamma * log(1-exp(- post_t$beta * 1.6  ))  +
-    ifelse(i == 1, post_t$theta_g*max(log(dat_traps$grip), na.rm = TRUE),
-           ifelse(i == 2, post_t$eta_h * max(log(dat_traps$height), na.rm = TRUE),
-                  ifelse(i == 3, post_t$zeta_k *max(apply(post_t$knowledge, 2, mean)), 0)))
-  psi_max <-  ifelse(i == 4 , post_t$xi * max(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE))
-  max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi_max))
-  diffs_out$tk <- (max_k - min_k)[1:length(post_s$alpha)]
-  diffs_phi$tk <- (phi_max - phi_min)[1:length(post_s$alpha)]
-  diffs_out[i + 5] <- max_k - min_k
-  if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
-}
-
-diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
-                                  rep("grip", nrow(diffs_out)),
-                                  rep("height", nrow(diffs_out)),
-                                  rep("duration", nrow(diffs_out))),
-                    p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
-)
-
-diffs_traps <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
-
-
+# #############################################################################
+# ##############################################################################
+# ###############################################################################
+# #Everything below might be crap
+# 
+# 
+# 
+# #SHELLS
+# ################
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* min(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* min(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_k <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* max(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* max(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_k <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sk <- max_k - min_k
+# diffs_phi$sk <- phi_max - phi_min
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* min(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_h <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* max(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_h <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sh <- max_h - min_h
+# diffs_phi$sh <- phi_max - phi_min
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* min(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_g <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* max(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# phi_max <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_g <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sg <- max_g - min_g
+# diffs_phi$sg <- phi_max - phi_min
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * min(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_d <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * max(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_d <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sd <- max_d - min_d
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* min(dat_shells$tide)
+# min_t <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* max(dat_shells$tide)
+# max_t <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$st <- min_t - max_t
+# 
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out)),
+#                                   rep("tide", nrow(diffs_out))),
+#                     kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
+# )
+# 
+# diffs_shells <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+# 
+# 
+# #TRAPS
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* min(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* min(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* max(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* max(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$tk <- (max_k - min_k)[1:length(post_s$alpha)]
+# diffs_phi$tk <- (phi_max - phi_min)[1:length(post_s$alpha)]
+# 
+# 
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* min(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# min_h <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* max(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# max_h <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$th <- (max_h - min_h)[1:length(post_s$alpha)]
+# diffs_phi$th <- (phi_max - phi_min)[1:length(post_s$alpha)]
+# 
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* min(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# min_g <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* max(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# max_g <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$tg <- (max_g - min_g)[1:length(post_s$alpha)]
+# diffs_phi$tg <- (phi_max - phi_min)[1:length(post_s$alpha)]
+# 
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * min(log(dat_traps$duration)) 
+# min_d <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * max(log(dat_traps$duration)) 
+# max_d <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$td <- (max_d - min_d )[1:length(post_s$alpha)]
+# 
+# 
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out))),
+#                     p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
+# )
+# 
+# diffs_traps <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
+# ###################################
+# 
+# out_shells_1 <- ggplot(diffs_shells, aes(x = variable, y = kg_shellfish)) + 
+#   geom_hline(yintercept = 0, color = "grey90") +
+#   geom_violin(fill = col.alpha(shellcol, 0.6),
+#               colour = shellcol) +
+#   labs(y = "kg shellfish difference", x = "")+
+#   ylim(-4, 6)+
+#   theme_classic()
+# 
+# out_traps_1 <- ggplot(diffs_traps, aes(x = variable, y = p_success)) + 
+#   geom_hline(yintercept = 0, color = "grey90") +
+#   geom_violin(fill = col.alpha(trapcol, 0.6),
+#               colour = trapcol) +
+#   labs(y = "p_success difference", x = "")+
+#   ylim(-1, 1)+
+#   theme_classic()
+# 
+# v_diffs_phi <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
+#                                         rep("grip", nrow(diffs_phi)),
+#                                         rep("height", nrow(diffs_phi)),
+#                                         rep("knowledge", nrow(diffs_phi)),
+#                                         rep("grip", nrow(diffs_phi)),
+#                                         rep("height", nrow(diffs_phi))),
+#                           p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
+#                           foraging_type = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
+# 
+# 
+# phi_trait_1 <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = foraging_type , color = foraging_type) )+ 
+#   geom_hline(yintercept = 0, color = "grey90") +
+#   geom_violin(trim=FALSE)+
+#   scale_fill_manual("foraging_type",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.6), col.alpha(trapcol, 0.6 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
+#   scale_color_manual("foraging_type",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
+#   labs(x = "", y = "phi difference")+
+#   ylim(-10, 10)+
+#   theme_classic()+
+#   theme(legend.position="top")
+# 
+# alphas
+# for(i in 1:nrow(pars)){
+#   png(paste("../plots/validate_model/alldiffs_combined_irt301000alpha02_",i ,".png", sep = ""), 
+#     height = 14, width = 16, units = "cm", res = 500)
+#   plots <- align_plots(phi_trait_1, out_shells_1, align = 'v', axis = 'l')
+#   # then build the bottom row
+#   bottom_row <- plot_grid(plots[[2]], out_traps_1, labels = c('B', 'C'), label_size = 12)
+# 
+#   # then combine with the top row for final plot
+#   plot_grid(plots[[1]], bottom_row, labels = c(paste(colnames(pars), pars[i,],collapse=","), ''), label_size = 12, ncol = 1)
+#   dev.off()
+# 
+# }
+# 
+# ####################
+# #estimate missing data
+# #######################
+# 
+# #make plots
+# sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
+# presence_col <- ifelse(dat_shells$has_knowledge == "1", "deepskyblue4", "darkorange3")
+# 
+# #check knowledge by age
+# year_seq <- seq(0,4,0.2)
+# plot(x = dat_shells$age * mean(d$age, na.rm = TRUE), 
+#      y = apply(post_s$knowledge, 2, median), 
+#      xlim = c(0,40),
+#      xlab = "Age" , 
+#      ylab = "",
+#      cex.lab=1.8 , 
+#      cex.axis=1.8 ,
+#      pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
+#      cex = 1.5, 
+#      col =  alpha( sex_col , 0.6 )  )
+# for (i in 1:250) {
+#   lines(x = year_seq * mean(d$age, na.rm = TRUE),  
+#         y = post_s$omega[i] + post_s$chi[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * year_seq)) ,  
+#         type = "l", 
+#         col = col.alpha( boycol, alpha = 0.1))}
+# for (i in 1:250) {
+#   lines(x = year_seq * mean(d$age, na.rm = TRUE),  
+#         y = post_s$omega[i] + post_s$chi[i,2] * ( 1 - exp(-post_s$ro_age[i,2] * year_seq)) ,  
+#         type = "l", 
+#         col = col.alpha( girlcol, alpha = 0.1))}
+# 
+# 
+# 
+# 
+# plot(x = dat_shells$age, 
+#      y = apply(post_s$height_merged, 2, mean), 
+#      xlim = c(0,4),
+#      xlab = "Age" , 
+#      ylab = "Height",
+#      cex.lab=1.8 , 
+#      cex.axis=1.8 ,
+#      pch = ifelse(dat_shells$has_height == 1, 19, 1) , 
+#      cex = 1.5, 
+#      col =  alpha( sex_col , 0.6 )  )
+# for (i in 1:250) {
+#   lines(x = year_seq ,  
+#         y = dat_shells$min_height + post_s$kappa[i,1] * ( 1 - exp(-post_s$lambda[i,1] * year_seq)) ,  
+#         type = "l", 
+#         col = col.alpha( boycol, alpha = 0.1))}
+# for (i in 1:250) {
+#   lines(x = year_seq ,  
+#         y = dat_shells$min_height + post_s$kappa[i,2] * ( 1 - exp(-post_s$lambda[i,2] * year_seq)) ,  
+#         type = "l", 
+#         col = col.alpha( girlcol, alpha = 0.1))}
+# 
+# 
+# 
+# plot(x = dat_shells$age, 
+#      y = apply(post_s$grip_merged, 2, mean), 
+#      xlim = c(0,4),
+#      xlab = "Age" , 
+#      ylab = "grip",
+#      cex.lab=1.8 , 
+#      cex.axis=1.8 ,
+#      pch = ifelse(dat_shells$has_grip == 1, 19, 1) , 
+#      cex = 1.5, 
+#      col =  alpha( sex_col , 0.6 )  )
+# for (i in 1:250) {
+#   lines(x = year_seq ,  
+#         y = post_s$min_grip[i] + post_s$epsilon[i,1] * ( 1 - exp(-post_s$upsilon[i,1] * year_seq)) ,  
+#         type = "l", 
+#         col = col.alpha( boycol, alpha = 0.1))}
+# for (i in 1:250) {
+#   lines(x = year_seq ,  
+#         y = post_s$min_grip[i] + post_s$epsilon[i,2] * ( 1 - exp(-post_s$upsilon[i,2] * year_seq)) ,  
+#         type = "l", 
+#         col = col.alpha( girlcol, alpha = 0.1))}
+# 
+# 
+# #prepare data
+# dat <- list(
+#   M = d$M,
+# 	notZ = d$notZ,
+# 	R = d$R,
+# 	L = d$L/mean(d$L),
+# 	K = d$K[d$ID_trip]/mean(d$K[d$ID_trip]),
+# 	B = d$B[d$ID_trip]/mean(d$B[d$ID_trip])
+# )
+# 
+# #fit model
+# m <- cstan( file= "models/other_models/model.stan" , data=dat , chains=1 )
+# precis(m) #looks good!
+# tracerplot(m) # parameters for returns not exploring much the space?
+# par(mfrow = c(1,1))
+# 
+# #CHECK MODEL FIT
+# #below my attempts at plotting the results of the model
+# #not zero seems fine, amount of results I'm doing something wrong
+# ################
+# x <- seq(0, 3, 0.1) #trait
+# post <- extract.samples(m)
+# 
+# #Not zero
+# plot(d$L/mean(d$L), d$notZ, pch = 16, col = col.alpha("grey30", 0.2), xlim = c(0,3))
+# for (i in 1:500) lines(x, 1 - (inv_logit (  2 * ( post$c[i] - 
+#                                 exp( post$z_l[i] * log(x)  )))) , col = col.alpha("orange", 0.4))
+# 
+# plot(d$K[d$ID_trip]/mean(d$K), d$notZ, pch = 16, col = col.alpha("grey30", 0.2), xlim = c(0,3))
+# for (i in 1:500) lines(x, 1 - (inv_logit (  2 * ( post$c[i] - 
+#                                 exp( post$z_k[i] * log(x)  )))) , col = col.alpha("orange", 0.4))
+# 
+# plot(d$B[d$ID_trip]/mean(d$B), d$notZ, pch = 16, col = col.alpha("grey30", 0.2), xlim = c(0,3))
+# for (i in 1:500) lines(x, 1 - (inv_logit (  2 * ( post$c[i] - 
+#                                 exp( post$z_b[i] * log(x)  )))) , col = col.alpha("orange", 0.4))
+# #Amount of results
+# plot(d$L/mean(d$L), d$R, pch = 16, col = col.alpha("grey30", 0.2), ylim=c(0,10))
+# for (i in 1:500) {
+#   mu <- exp ( exp( post$r_l[i] * log(x)) + ((post$sigma[i]^2) /2))
+#   lines(x, mu, col = col.alpha("orange", 0.4))
+# }
+# 
+# plot(dat$K, d$R, pch = 16, col = col.alpha("grey30", 0.2), ylim=c(0,10))
+# for (i in 1:500) {
+#   mu <- exp ( exp( post$r_k[i] * log(x)) + ((post$sigma[i]^2) /2))
+#   lines(x, mu, col = col.alpha("orange", 0.4))
+# }
+# 
+# plot(dat$B, d$R, pch = 16, col = col.alpha("grey30", 0.2), ylim=c(0,10))
+# for (i in 1:500) {
+#   mu <- exp ( exp( post$r_b[i] * log(x)) + ((post$sigma[i]^2) /2))
+#   lines(x, mu, col = col.alpha("orange", 0.4))
+# }
+# ################
+# 
+# #FIT MODEL MULTIPLE TIMES
+# #plots recovered parameters versus estimated parameters 
+# #in gray the parameters for non zero returns, orange for amount of returns
+# #seems to be doing a good job of recovering the parameters!
+# ###############
+# #define list of parameter combinations
+# s <- list ( c(2, 0.1, 3),
+#              c(2, 0.5, 0.9),
+#              c(2, 0.1, 3),
+#              c(0.8, 0.2, 0.3)
+#              )
+# age <- c(T,T,F,F)  #whether age has an effect at all on knowledge and body. Tests whether correlation between K and B impairs the model ability to distinguish between the two
+# a <- c(3, 0.5, 1, 1) #effect of age on knowledge and body
+# labsss <- c( "big age effect on K & B", "small age effect on K & B", "no age effect on K & B", "no age effect on K & B")
+# par(mfrow = c(2,2))
+# 
+# #run 5 models for each of the 4 combinations of parameters
+# for (i in 1:4) {
+#   zs <- s[[i]]
+#   rs <- s[[i]] #assign set of values for simulation
+#   plot( NULL, xlim = c(0,3.1), ylim = c(0,3.1),
+#        xlab = "simulated effect", ylab = "estimated effect",
+#        main = labsss[i])
+# 
+#   for(j in 1:5){
+#     d <- sim_data(100, 300, 
+#               zl = zs[1], zk = zs[2], zb = zs[3],
+#               rl = rs[1], rk = rs[2], rb = rs[3],
+#               ak = 0.5, ab = 0.5, age = a[i]
+#               )
+# 
+#     dat <- list(
+#               M = d$M,
+#             	notZ = d$notZ,
+#             	R = d$R,
+#             	L = d$L/mean(d$L),
+#             	K = d$K[d$ID_trip]/mean(d$K[d$ID_trip]),
+#             	B = d$B[d$ID_trip]/mean(d$B[d$ID_trip])
+#       )
+# 
+#       m <- cstan( file= "models/other_models/model.stan" , data=dat , chains=1 )
+# 
+#       prec <- precis(m)
+#       post <- extract.samples(m)
+# 
+#       points( zs-0.01, prec$mean[2:4], xlim = c(0,1.5), ylim = c(0,1.5), pch = c (15, 16, 17), col = col.alpha("gray40", 0.8))
+#       points( rs+0.01, prec$mean[5:7], xlim = c(0,1.5), ylim = c(0,1.5), pch = c (15, 16, 17), col = col.alpha("orange", 0.8))
+#       abline(0,1)
+#     }
+# }
+# 
+# par(mfrow = c(1,1))
+# ###############
+# 
+# 
+# 
+# 
+# 
+# for (i in 1:5) {
+#   phi_min <-  apply(post_s$iota,1,mean )  +
+#     post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#     post_s$theta_g* ifelse(i == 1 , log(0.5), mean(log(dat_shells$grip), na.rm = TRUE))  +
+#     post_s$eta_h* ifelse(i == 2 , log(0.5), mean(log(dat_shells$height), na.rm = TRUE)) +
+#     #post_s$zeta_k* * ifelse(i == 3, mean(log(dat_shells$knowledge), na.rm = TRUE) , 0.5)
+#     post_s$zeta_k* ifelse(i == 3 , mean(apply(post_s$knowledge, 2, mean)) - sd(apply(post_s$knowledge, 2, mean)), mean(apply(post_s$knowledge, 2, mean)) )
+#   psi_min <-  post_s$xi * ifelse(i == 4 , log(0.5), mean(log(dat_shells$duration), na.rm = TRUE))+
+#     post_s$tau*0
+#   min_k <- exp (log(post_s$alpha) + phi_min + psi_min +
+#                 (post_s$sigma^2 /2))
+#   phi_max <-  apply(post_s$iota,1,mean )  +
+#     post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#     post_s$theta_g* ifelse(i == 1 , log(1.5), mean(log(dat_shells$grip), na.rm = TRUE))  +
+#     post_s$eta_h* ifelse(i == 2 , log(1.5), mean(log(dat_shells$height), na.rm = TRUE)) +
+#     #post_s$zeta_k* * ifelse(i == 3, mean(log(dat_shells$knowledge), na.rm = TRUE) , 0.5)
+#     post_s$zeta_k* ifelse(i == 3 , mean(apply(post_s$knowledge, 2, mean)) + sd(apply(post_s$knowledge, 2, mean)), mean(apply(post_s$knowledge, 2, mean)) )
+#   psi_max <-  post_s$xi * ifelse(i == 4 , log(1.5), mean(log(dat_shells$duration), na.rm = TRUE))+
+#     post_s$tau*0
+#   max_k <- exp (log(post_s$alpha) + phi_max + psi_max +
+#                   (post_s$sigma^2 /2))
+#   diffs_out[i] <- max_k - min_k
+#   if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
+# }
+# 
+# #SHELLS
+# ################
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* min(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* (mean(apply(post_s$knowledge, 2, mean)) - sd(apply(post_s$knowledge, 2, mean)))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_k <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* max(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* (mean(apply(post_s$knowledge, 2, mean)) + sd(apply(post_s$knowledge, 2, mean)))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_k <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sk <- max_k - min_k
+# diffs_phi$sk <- phi_max - phi_min
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* (mean(log(dat_shells$height), na.rm = TRUE) - sd(log(dat_shells$height), na.rm = TRUE)) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_h <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* (mean(log(dat_shells$height), na.rm = TRUE) + sd(log(dat_shells$height), na.rm = TRUE)) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_h <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sh <- max_h - min_h
+# diffs_phi$sh <- phi_max - phi_min
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* (mean(log(dat_shells$grip), na.rm = TRUE) - sd(log(dat_shells$grip), na.rm = TRUE) )+
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# min_g <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* (mean(log(dat_shells$grip), na.rm = TRUE) + sd(log(dat_shells$grip), na.rm = TRUE) )+
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# phi_max <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* mean(dat_shells$tide)
+# max_g <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sg <- max_g - min_g
+# diffs_phi$sg <- phi_max - phi_min
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * (mean(log(dat_shells$duration)) - sd(log(dat_shells$duration)))+
+#   post_s$tau* mean(dat_shells$tide)
+# min_d <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * (mean(log(dat_shells$duration)) + sd(log(dat_shells$duration)))+
+#   post_s$tau* mean(dat_shells$tide)
+# max_d <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$sd <- max_d - min_d
+# 
+# phi_min <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* (mean(dat_shells$tide) - sd(dat_shells$tide))
+# min_t <- exp (log(post_s$alpha) + phi_min + psi +
+#                 (post_s$sigma^2 /2))
+# phi_max <-  apply(post_s$iota,1,mean )  +
+#   post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
+#   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_shells$knowledge), na.rm = TRUE)
+#   post_s$zeta_k* mean(apply(post_s$knowledge, 2, mean))
+# psi <-  post_s$xi * mean(log(dat_shells$duration)) +
+#   post_s$tau* (mean(dat_shells$tide) + sd(dat_shells$tide))
+# max_t <- exp (log(post_s$alpha) + phi_max + psi +
+#                 (post_s$sigma^2 /2))
+# diffs_out$st <- min_t - max_t
+# 
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out)),
+#                                   rep("tide", nrow(diffs_out))),
+#                     kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
+# )
+# 
+# diffs_shells <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+# 
+# 
+# #TRAPS
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* min(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* min(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* max(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* max(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$tk <- (max_k - min_k)[1:length(post_s$alpha)]
+# diffs_phi$tk <- (phi_max - phi_min)[1:length(post_s$alpha)]
+# 
+# 
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* min(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# min_h <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* max(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# max_h <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$th <- (max_h - min_h)[1:length(post_s$alpha)]
+# diffs_phi$th <- (phi_max - phi_min)[1:length(post_s$alpha)]
+# 
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* min(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# min_g <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* max(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * mean(log(dat_traps$duration)) 
+# max_g <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$tg <- (max_g - min_g)[1:length(post_s$alpha)]
+# diffs_phi$tg <- (phi_max - phi_min)[1:length(post_s$alpha)]
+# 
+# phi_min <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * min(log(dat_traps$duration)) 
+# min_d <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+# phi_max <-  apply(post_t$iota,1,mean )  +
+#   post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#   post_t$eta_h* mean(log(dat_traps$height), na.rm = TRUE) +
+#   post_t$theta_g* mean(log(dat_traps$grip), na.rm = TRUE) +
+#   #post_s$zeta_k* mean(log(dat_traps$knowledge), na.rm = TRUE)
+#   post_t$zeta_k* mean(apply(post_t$knowledge, 2, mean))
+# psi <-  post_t$xi * max(log(dat_traps$duration)) 
+# max_d <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+# diffs_out$td <- (max_d - min_d )[1:length(post_s$alpha)]
+# 
+# 
+# ##############
+# #trying to improve the function for these stupid plots
+# #############
+# 
+# #max - min - with average trait as effect of age only
+# sds <- c( sd(log(dat_shells$grip)),
+#           sd(log(dat_shells$height)), 
+#           sd(apply(post_s$knowledge, 2, mean)), #sd(log(dat_shells$knowledge))
+#           sd(log(dat_shells$duration)),
+#           sd(dat_shells$tide))
+# 
+# for (i in 1:5) {
+#   phi_min <-  apply(post_s$iota,1,mean )  +
+#     post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#     ifelse(i == 1, post_s$theta_g * (mean(log(dat_shells$grip) , na.rm = TRUE)- sds[i]),
+#            ifelse(i == 2, post_s$eta_h * (mean(log(dat_shells$height), na.rm = TRUE) - sds[i]),
+#                   ifelse(i == 3, post_s$zeta_k *(mean(apply(post_s$knowledge, 2, mean)) - sds[i]), 0)))
+#   psi_min <-  ifelse(i == 4 , post_s$xi * (mean(log(dat_shells$duration) , na.rm = TRUE)- sds[i]), mean(log(dat_shells$duration), na.rm = TRUE))+
+#     post_s$tau*0
+#   min_r <- exp (log(post_s$alpha) + phi_min + psi_min +
+#                   (post_s$sigma^2 /2))
+#   phi_max <-  apply(post_s$iota,1,mean )  +
+#     post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#     ifelse(i == 1, post_s$theta_g * (mean(log(dat_shells$grip), na.rm = TRUE) + sds[i]),
+#            ifelse(i == 2, post_s$eta_h * (mean(log(dat_shells$height), na.rm = TRUE) + sds[i]),
+#                   ifelse(i == 3, post_s$zeta_k *(mean(apply(post_s$knowledge, 2, mean)) + sds[i]), 0)))
+#   psi_max <-  ifelse(i == 4 , post_s$xi * (mean(log(dat_shells$duration), na.rm = TRUE) + sds[i]), mean(log(dat_shells$duration), na.rm = TRUE))+
+#     post_s$tau*0
+#   max_r <- exp (log(post_s$alpha) + phi_max + psi_max +
+#                   (post_s$sigma^2 /2))
+#   diffs_out[i] <- max_r - min_r
+#   if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
+# }
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out)),
+#                                   rep("tide", nrow(diffs_out))),
+#                     kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
+# )
+# 
+# diffs_shells <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+# 
+# sds <- c( sd(log(dat_traps$grip)),
+#           sd(log(dat_traps$height)), 
+#           sd(apply(post_t$knowledge, 2, mean)), #sd(log(dat_traps$knowledge))
+#           sd(log(dat_traps$duration)))
+# 
+# for (i in 1:4) {
+#   phi_min <-  apply(post_t$iota,1,mean )  +
+#     post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#     ifelse(i == 1, post_t$theta_g*(mean(log(dat_traps$grip), na.rm = TRUE) - sds[i]),
+#            ifelse(i == 2, post_t$eta_h * (mean(log(dat_traps$height), na.rm = TRUE) - sds[i]),
+#                   ifelse(i == 3, post_t$zeta_k *(mean(apply(post_t$knowledge, 2, mean)) - sds[i]), 0)))
+#   psi_min <-  ifelse(i == 4 , post_t$xi * (mean(log(dat_traps$duration), na.rm = TRUE) - sds[i]), mean(log(dat_traps$duration), na.rm = TRUE))
+#   min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi_min))
+#   phi_max <-  apply(post_t$iota,1,mean )  +
+#     post_t$gamma * log(1-exp(- post_t$beta * 1.6  ))  +
+#     ifelse(i == 1, post_t$theta_g*(mean(log(dat_traps$grip), na.rm = TRUE) + sds[i]),
+#            ifelse(i == 2, post_t$eta_h * (mean(log(dat_traps$height), na.rm = TRUE) + sds[i]),
+#                   ifelse(i == 3, post_t$zeta_k *(mean(apply(post_t$knowledge, 2, mean)) + sds[i]), 0)))
+#   psi_max <-  ifelse(i == 4 , post_t$xi * (mean(log(dat_traps$duration), na.rm = TRUE) + sds[i]), mean(log(dat_traps$duration), na.rm = TRUE))
+#   max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi_max))
+#   diffs_out$tk <- max_k - min_k
+#   diffs_phi$tk <- phi_max - phi_min
+#   diffs_out[i + 5] <- max_k - min_k
+#   if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
+# }
+# 
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out))),
+#                     p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
+# )
+# 
+# 
+# 
+# #max - min - with average trait as effect of age only
+# for (i in 1:5) {
+#   phi_min <-  apply(post_s$iota,1,mean )  +
+#     post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#     ifelse(i == 1, post_s$theta_g * min(log(dat_shells$grip), na.rm = TRUE),
+#            ifelse(i == 2, post_s$eta_h * min(log(dat_shells$height), na.rm = TRUE),
+#                   ifelse(i == 3, post_s$zeta_k *min(apply(post_s$knowledge, 2, mean)), 0)))
+#   psi_min <-  ifelse(i == 4 , post_s$xi * min(log(dat_shells$duration), na.rm = TRUE), mean(log(dat_shells$duration), na.rm = TRUE))+
+#     post_s$tau*0
+#   min_r <- exp (log(post_s$alpha) + phi_min + psi_min +
+#                   (post_s$sigma^2 /2))
+#   phi_max <-  apply(post_s$iota,1,mean )  +
+#     post_s$gamma * log(1-exp(- post_s$beta * 1.6  )) +
+#     ifelse(i == 1, post_s$theta_g * max(log(dat_shells$grip), na.rm = TRUE),
+#            ifelse(i == 2, post_s$eta_h * max(log(dat_shells$height), na.rm = TRUE),
+#                   ifelse(i == 3, post_s$zeta_k *max(apply(post_s$knowledge, 2, mean)), 0)))
+#   psi_max <-  ifelse(i == 4 , post_s$xi * max(log(dat_shells$duration), na.rm = TRUE), mean(log(dat_shells$duration), na.rm = TRUE))+
+#     post_s$tau*0
+#   max_r <- exp (log(post_s$alpha) + phi_max + psi_max +
+#                   (post_s$sigma^2 /2))
+#   diffs_out[i] <- max_r - min_r
+#   if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
+# }
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out)),
+#                                   rep("tide", nrow(diffs_out))),
+#                     kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
+# )
+# 
+# diffs_shells <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+# 
+# 
+# for (i in 1:4) {
+#   phi_min <-  apply(post_t$iota,1,mean )  +
+#     post_t$gamma * log(1-exp(- post_t$beta * 1.6  )) +
+#     ifelse(i == 1, post_t$theta_g*min(log(dat_traps$grip), na.rm = TRUE),
+#            ifelse(i == 2, post_t$eta_h * min(log(dat_traps$height), na.rm = TRUE),
+#                   ifelse(i == 3, post_t$zeta_k *min(apply(post_t$knowledge, 2, mean)), 0)))
+#   psi_min <-  ifelse(i == 4 , post_t$xi * min(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE))
+#   min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi_min))
+#   phi_max <-  apply(post_t$iota,1,mean )  +
+#     post_t$gamma * log(1-exp(- post_t$beta * 1.6  ))  +
+#     ifelse(i == 1, post_t$theta_g*max(log(dat_traps$grip), na.rm = TRUE),
+#            ifelse(i == 2, post_t$eta_h * max(log(dat_traps$height), na.rm = TRUE),
+#                   ifelse(i == 3, post_t$zeta_k *max(apply(post_t$knowledge, 2, mean)), 0)))
+#   psi_max <-  ifelse(i == 4 , post_t$xi * max(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE))
+#   max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi_max))
+#   diffs_out$tk <- (max_k - min_k)[1:length(post_s$alpha)]
+#   diffs_phi$tk <- (phi_max - phi_min)[1:length(post_s$alpha)]
+#   diffs_out[i + 5] <- max_k - min_k
+#   if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
+# }
+# 
+# diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+#                                   rep("grip", nrow(diffs_out)),
+#                                   rep("height", nrow(diffs_out)),
+#                                   rep("duration", nrow(diffs_out))),
+#                     p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
+# )
+# 
+# diffs_traps <- diffs %>% 
+#   mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
+# 
+# 

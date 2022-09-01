@@ -1,9 +1,8 @@
-library(rethinking)
-library(rlist)
-library(tidyverse)
-library(ggridges)
-real_data <- list.load("2_data_preparation/processed_data.RData")
-seq_trait <- seq(0,3,0.001)
+# library(rethinking)
+# library(rlist)
+# library(tidyverse)
+# library(ggridges)
+# real_data <- list.load("2_data_preparation/processed_data.RData")
 
 
 anonyme <- function( df_column) {
@@ -170,24 +169,8 @@ getmode(n_members_traps$n)
 #########################
 #AGE ONLY
 #########################
-#prepare data age only
-dc_shellppl <- real_data$shell_ppl[complete.cases(real_data$shell_ppl$age),]
-dc_shell_k <- real_data$shell_k[which(rownames(real_data$shell_k) %in% dc_shellppl$anonymeID),]
-dc_shells <- real_data$shells[which(real_data$shells$anonymeID %in% dc_shellppl$anonymeID),]
-
-dc_shellppl$index_id <- as.integer(as.factor(dc_shellppl$anonymeID))
-dc_shellppl <- dc_shellppl[order(dc_shellppl$index_id),]
-dc_shells$index_id <- as.integer(as.factor(dc_shells$anonymeID))
-dc_shell_k <- dc_shell_k[ order(as.factor(row.names(dc_shell_k))), ]
-
-dc_trapppl <- real_data$trap_ppl[complete.cases(real_data$trap_ppl$age),]
-dc_traps <- real_data$traps[which(real_data$traps$anonymeID %in% dc_trapppl$anonymeID),]
-dc_trap_k <- real_data$trap_k[which(rownames(real_data$trap_k) %in% dc_trapppl$anonymeID),]
-
-dc_trapppl$index_id <- as.integer(as.factor(dc_trapppl$anonymeID))
-dc_trapppl <- dc_trapppl[order(dc_trapppl$index_id),]
-dc_traps$index_id <- as.integer(as.factor(dc_traps$anonymeID))
-dc_trap_k <- dc_trap_k[ order(as.factor(row.names(dc_trap_k))), ]
+dat_shells <- make_list_data_age(foraging_type = "shells")
+dat_traps <- make_list_data_age(foraging_type = "traps")
 
 post_s <- extract.samples(m_shell_age)
 post_t <- extract.samples(m_trap_age)
@@ -199,11 +182,11 @@ p_max_for_10 <- matrix(NA,
                        nrow = 3, ncol = 2, 
                        dimnames = list(c("median", "5%PI", "94%PI"), 
                                        c("shells","traps")))
-p_max_for_10[1,1] <- median((1-exp(-post_s$beta * 10/mean(d_shellppl$age)  )) ^ median(post_s$gamma))
-p_max_for_10[2:3,1] <- PI(((1-exp(-post_s$beta * 10/mean(d_shellppl$age)  )) ^ post_s$gamma))
+p_max_for_10[1,1] <- median((1-exp(-post_s$beta * 10/mean_age_shells  )) ^ median(post_s$gamma))
+p_max_for_10[2:3,1] <- PI(((1-exp(-post_s$beta * 10/mean_age_shells  )) ^ post_s$gamma))
 
-p_max_for_10[1,2] <- (1-exp(-median(post_t$beta) * 10/mean(d_trapppl$age)  )) ^ median(post_t$gamma)
-p_max_for_10[2:3,2] <- PI((1-exp(-post_t$beta * 10/mean(d_trapppl$age)  )) ^ PI(post_t$gamma))
+p_max_for_10[1,2] <- (1-exp(-median(post_t$beta) * 10/mean_age_traps  )) ^ median(post_t$gamma)
+p_max_for_10[2:3,2] <- PI((1-exp(-post_t$beta * 10/mean_age_traps  )) ^ PI(post_t$gamma))
 #WHY MEDIAN IS NOT BETWEEN PI????
 
 
@@ -212,72 +195,32 @@ p_max_for_10[2:3,2] <- PI((1-exp(-post_t$beta * 10/mean(d_trapppl$age)  )) ^ PI(
 ######################################
 # TIDE LEVELS
 ######################################
-d_shellppl <- real_data$shell_ppl
-d_shells <- real_data$shells
+dat_shells <- make_list_data_all(foraging_type = "shells")
 
-for(i in 1:nrow(d_shells)){
-  d_shells$age[i] <- d_shellppl$age[which (d_shellppl$anonymeID == d_shells$anonymeID[i])]
-}
+dat_tides <- dat_shells [ c("M", "ID_i", "tide", "age", "sex")]
+dat_tides$age <- d_tides$age[d_tides$ID_i]
+dat_tides$sex <- d_tides$sex[d_tides$ID_i]
+dat_tides$age <- dat_tides$age * mean_age_shells
 
-for(i in 1:nrow(d_shells)){
-  d_shells$sex[i] <- d_shellppl$sex[which (d_shellppl$anonymeID == d_shells$anonymeID[i])]
-}
-d_tides <- d_shells [-which(d_shells$age >=15 & d_shells$sex == "m"),]
-d_tides %>% filter(age >=20 ) %>% summarize( Mean = mean(tide_avg_depth))
-d_tides %>% filter(age <=19 ) %>% summarize( Mean = mean(tide_avg_depth))
+dat_tides <- as.data.frame(dat_tides)
+dat_tides <- dat_tides [-which(dat_tides$age >=15 & dat_tides$sex == "m"),]
+dat_tides %>% filter(age >=20 ) %>% summarize( Mean = mean(tide))
+dat_tides %>% filter(age <=19 ) %>% summarize( Mean = mean(tide))
 
-d_tides %>% filter(tide_avg_depth >0 ) %>% summarize( Mean = mean(age))
-d_tides %>% filter(tide_avg_depth <=0 ) %>% summarize( Mean = mean(age))
+dat_tides %>% filter(tide >0 ) %>% summarize( Mean = mean(age))
+dat_tides %>% filter(tide <=0 ) %>% summarize( Mean = mean(age))
 
 ###############
 #shells calculation
-
-#SHELLS
-d_shellppl <- real_data$shell_ppl
-d_shells <- real_data$shells
-d_shell_k <- real_data$shell_k
-
-#add index variables
-#index and sort all individuals so we can loop across them
-d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
-d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
-#add index for individuals in the foraging data
-for ( i in 1:nrow(d_shells)){
-  d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
-}
-#sort knowledge data
-d_shell_k <- d_shell_k[ order(row.names(d_shell_k)), ]
-
-#SHELLS
-dat_shells <- list(
-  #foraging data
-  N = nrow(d_shellppl),                       #n individuals in total sample
-  M = nrow(d_shells),                         #n trip/person
-  ID_i= d_shells$index_id,                    #index of person of trip 
-  returns = as.numeric(d_shells$returns)/1000,#amount of shells in kg
-  age = (d_shellppl$age / mean(d_shellppl$age)),
-  sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
-  duration = d_shells$lenght_min/mean(d_shells$lenght_min),
-  tide = d_shells$tide_avg_depth,
-  #height data
-  has_height = ifelse(is.na(d_shellppl$height), 0, 1),# #vector of 0/1 for whether height has to be imputed
-  height = d_shellppl$height/mean(d_shellppl$height, na.rm = TRUE),
-  min_height = 50/mean(d_shellppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
-  #grip data
-  has_grip = ifelse(is.na(d_shellppl$grip), 0, 1),# #vector of 0/1 for whether grip has to be imputed
-  grip = d_shellppl$grip/mean(d_shellppl$grip, na.rm = TRUE),
-  #knowledge data
-  has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
-  Q = ncol(d_shell_k),                        #n items in freelist
-  answers = d_shell_k                         #all answers from freelist
-)
+dat_shells <- make_list_data_all(foraging_type = "shells")
+post_s <- extract.samples(m_shells_all)
 
 phi <-  apply(post_s$iota,1,mean )  +
   post_s$gamma * log(1-exp(- post_s$beta * 1.23  )) +
   post_s$eta_h* mean(log(dat_shells$height), na.rm = TRUE) +
   post_s$theta_g* mean(log(dat_shells$grip), na.rm = TRUE) +
   post_s$zeta_k* min(apply(post_s$knowledge, 2, mean))
-psi <-  post_s$xi * mean(log(180/mean(d_shells$lenght_min))) +
+psi <-  post_s$xi * mean(log(180/mean(real_data$shells$lenght_min))) +
   post_s$tau* 0
 kg_shells <- exp (log(post_s$alpha) + phi_min + psi +
                 (post_s$sigma^2 /2))
