@@ -1,20 +1,24 @@
-sim_data <- function (N , M , Q = 0,   #number of 
+sim_data <- function (N , M , Q = 100,   #number of 
           zero = T, 
           b_a = 1,
           g_a = 1,
           g_k = 1,
-          g_b = 1,
+          g_h = 1,
+          g_g = 1,
           l = 1,
-          alpha = 0.3,
-          add_to_b = 0){
+          alpha_success = 0.2,
+          alpha_returns = 1,
+          add_to_b = 0,
+          max_age = age_plot){
   #parameters
   lambda <-  rexp(1,l)
-  sigma <- rexp(1, 3)
+  sigma <- rexp(1, 4)
   
   #Simulate individual traits
-  AGE <- runif(N,3,20)
+  AGE <- runif(N,3,max_age)
   K <- abs( (AGE/mean(AGE)) + rnorm(N, 0, 0.3))#trait
-  B <- add_to_b + abs( (AGE/mean(AGE)) + rnorm(N, 0, 0.3))#trait
+  H <- add_to_b + abs( (AGE/mean(AGE)) + rnorm(N, 0, 0.3))#trait
+  G <- abs( (AGE/mean(AGE)) + rnorm(N, 0, 0.3))#trait
   
   ########  
   ###Items
@@ -39,7 +43,8 @@ sim_data <- function (N , M , Q = 0,   #number of
   
   phi <- (1-exp( -b_a * AGE/mean(AGE) ) )^ g_a *
                   (K/mean(K)) ^ g_k *
-                  (B/mean(B)) ^ g_b
+                  (H/mean(H)) ^ g_h *
+                  (G/mean(G)) ^ g_g
 
 #simulate trip properties
   if (zero == T){
@@ -60,12 +65,15 @@ sim_data <- function (N , M , Q = 0,   #number of
   R <- vector("numeric", length = M) 
   for(i in 1:M){
         if( zero == F) S <- rep(1, M) else {
-            p[i] <- 1 - exp ( - abs(alpha) * phi[ID_ind[i]] * psi[i] )
+            p[i] <- 1 - exp ( - abs(alpha_success) * phi[ID_ind[i]] * psi[i] )
             S[i] <- rbern(1, p[i])
             }     
-        m <- log(alpha * phi[ID_ind[i]] * psi[i])
-        R[i] <- S[i] * rlnorm (1, m, sigma)
+        m <- log(alpha_returns * phi[ID_ind[i]] * psi[i])
+        R[i] <- S[i] * rlnorm (1, m, 0.2)
   }
+  has_knowledge <- rbern(N, 0.8)
+  has_height <- rbern(N, 0.8)
+  has_grip <- rbern(N, 0.8)
 
   return( list (N = N, #number of kids
                 M = M, #number of trips
@@ -73,7 +81,11 @@ sim_data <- function (N , M , Q = 0,   #number of
                 age = AGE, #ages
                 sex = 1 + rbern(N, 0.5),
                 knowledge = K, #knowledge
-                body = B, #body
+                height = H, #body
+                grip = G, #body
+                has_knowledge = has_knowledge,
+                has_height = has_height,
+                has_grip = has_grip,
                 answers = Y, #answers to questionnaire
                 duration = L, #duration  of trips
                 ID_ind = ID_ind, #child per trip

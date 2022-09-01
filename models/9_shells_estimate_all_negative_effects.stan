@@ -58,7 +58,6 @@ parameters{
   vector<lower=0>[2] epsilon;   //max effect of age on grip, sex specific
   vector<lower=0>[2] upsilon;   //sex specific grip speed
   vector<lower=0>[N] grip_unobs;
-  real min_grip;
   
 }//parameters
 
@@ -134,7 +133,6 @@ model{
   for (i in 1:N) grip_unobs[i] ~ normal(1, 0.5)T[0,];
   epsilon ~ exponential(1);
   upsilon ~ exponential(1);
-  min_grip ~ normal(0, 0.5);
 
 	//irt across knowledge people to estimage age and sex specific knowledge
 	for ( i in 1:N ) {
@@ -155,7 +153,7 @@ model{
 
   //grip model
   for (i in 1:N){
-      real mu_grip = min_grip + epsilon[sex[i]] * ( 1 - exp(-upsilon[sex[i]] * age[i]) );
+      real mu_grip = epsilon[sex[i]] * ( 1 - exp(-upsilon[sex[i]] * age[i]) );
       grip_merged[i] ~ normal(mu_grip, sigma_grip);
 
   }
