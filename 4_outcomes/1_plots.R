@@ -19,11 +19,11 @@ dat_shells <- make_list_data_age(foraging_type = "shells")
 dat_traps <- make_list_data_age(foraging_type = "traps")
 
 #plot fit to data with age only
-post_s <- extract.samples(m_shell_age)
-post_t <- extract.samples(m_trap_age)
+post_s <- extract.samples(m_shells_age)
+post_t <- extract.samples(m_traps_age)
 
 
-png("../plots/age_only.png", height = 16, width = 16, units = "cm", res = 500)
+png("../plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type="cairo")
   par(mfrow = c(2,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
   #shells
   phi <-  mean(post_s$iota) +
@@ -253,7 +253,7 @@ phi_trait_max <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = for
 
 
 
-png("../plots/alldiffs_combined.png", height = 14, width = 16, units = "cm", res = 500)
+png("../plots/alldiffs_combined.png", height = 14, width = 16, units = "cm", res = 500, type="cairo")
 plots <- align_plots(phi_trait_max, out_shells_max, align = 'v', axis = 'l')
 # then build the bottom row
 bottom_row <- plot_grid(plots[[2]], out_traps_max, labels = c('B', 'C'), label_size = 12)
@@ -388,7 +388,7 @@ phi_trait_sd <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = fora
   theme(legend.position="top")
 
 
-png("../plots/alldiffs_combined_sd.png", height = 14, width = 16, units = "cm", res = 500)
+png("../plots/alldiffs_combined_sd.png", height = 14, width = 16, units = "cm", res = 500, type="cairo")
 plots <- align_plots(phi_trait_sd, out_shells_sd, align = 'v', axis = 'l')
 # then build the bottom row
 bottom_row <- plot_grid(plots[[2]], out_traps_sd, labels = c('B', 'C'), label_size = 12)

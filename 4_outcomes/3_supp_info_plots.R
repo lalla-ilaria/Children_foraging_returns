@@ -49,7 +49,7 @@ for(i in 1:nsamp){
   B[i,] <- betab[i]*AGE #trait
 }
 
-png("../plots/prior_age_only.png", height = 3, width = 4, units = "in", res = 500)
+png("../plots/prior_age_only.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
 #plot prior predictive simulation
 par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,1), 
@@ -73,7 +73,7 @@ text(0.4, 0.7,expression(paste(beta,"=3,",gamma,"=1",sep = "")))
 dev.off()
 
 
-png("../plots/prior_age_and_trait_4.png", height = 3, width = 4, units = "in", res = 500)
+png("../plots/prior_age_and_trait_4.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
 #plot prior predictive simulation
 par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,2), 
@@ -351,7 +351,7 @@ phi_trait_prior <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = f
   theme(legend.position="top")
 
 
-png("../plots/alldiffs_combined_prior.png", height = 14, width = 16, units = "cm", res = 500)
+png("../plots/alldiffs_combined_prior.png", height = 14, width = 16, units = "cm", res = 500, type="cairo")
 plots <- align_plots(phi_trait_prior, out_shells, align = 'v', axis = 'l')
 # then build the bottom row
 bottom_row <- plot_grid(plots[[2]], out_traps, labels = c('B', 'C'), label_size = 12)
@@ -365,7 +365,7 @@ dev.off()
 #AGE ONLY - traps with average 
 ##################################################
 post_t <- extract.samples(m_trap_age)
-png("../plots/age_only_trap_mean.png", height = 8, width = 8, units = "cm", res = 500)
+png("../plots/age_only_trap_mean.png", height = 8, width = 8, units = "cm", res = 500, type="cairo")
 par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 
 #traps 
@@ -406,7 +406,7 @@ post_tide <- extract.samples (m_tide)
 
 dat_tides$age <- dat_tides$age * mean_age_shells
 
-png("../plots/age_and_tide.png", height = 3, width = 4, units = "in", res = 500)
+png("../plots/age_and_tide.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
 plot(jitter(dat_tides$age, 2) , dat_tides$tide, pch = 16, col = "#1482ac")
 for ( i in 1:250) lines( seq(0,4, 0.1) * mean_age_shells, 
                          post_tide$alpha[i] + post_tide$beta[i] * seq(0,4, 0.1),
@@ -422,7 +422,7 @@ dat_tides$age <- d_tides$age[d_tides$ID_i]
 dat_tides$age <- dat_tides$age * mean_age_shells
 dat_tides$n_item_types <- real_data$shells$n_item_types
 
-png("../plots/n_items_age.png", height = 3, width = 4, units = "in", res = 500)
+png("../plots/n_items_age.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
 plot(dat_tides$age[which(dat_tides$n_item_types > 0)] , 
      dat_tides$n_item_types[which(dat_tides$n_item_types > 0)],
      xlim = c(5,age_plot ), ylim = c(0, 10),
@@ -487,7 +487,7 @@ post_t <- extract.samples(m_traps_all)
 #check traits by age shells
 sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
 presence_col <- ifelse(dat_shells$has_knowledge == "1", shellcol, "deepskyblue4")
-png("../plots/missing_data_validation_shells.png", height = 5, width = 8, units = "in", res = 500)
+png("../plots/missing_data_validation_shells.png", height = 5, width = 8, units = "in", res = 500, type="cairo")
 par(mfrow = c(1,3),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(x = dat_shells$age * mean_age_shells, 
      y = apply(post_s$height_merged, 2, mean), 
@@ -559,7 +559,7 @@ dev.off()
 sex_col <- ifelse(dat_traps$sex == "1", boycol, girlcol)
 presence_col <- ifelse(dat_traps$has_knowledge == "1", "deepskyblue4", "darkorange3")
 
-png("../plots/missing_data_validation_traps.png", height = 5, width = 8, units = "in", res = 500)
+png("../plots/missing_data_validation_traps.png", height = 5, width = 8, units = "in", res = 500, type="cairo")
 par(mfrow = c(1,3),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(x = dat_traps$age * mean_age_traps, 
      y = apply(post_t$height_merged, 2, mean), 
@@ -628,7 +628,7 @@ dev.off()
 ##########################
 #TIDE PLOTS
 ##########################
-png("../plots/tide_distance_kernel.png", height = 10, width = 12, units = "cm", res = 500)
+png("../plots/tide_distance_kernel.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
   par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
   curve(exp(-0.07 * (x) ^2 ) *-1  , 
         xlim = c(-6,6), ylim = c(-1,0),
@@ -641,7 +641,7 @@ png("../plots/tide_distance_kernel.png", height = 10, width = 12, units = "cm", 
 dev.off()
 
 
-png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res = 500)
+png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
   par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
   high_tide <- 3 #in meters. Consider searching for high tide value for each day #todo
   
@@ -664,7 +664,7 @@ png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res 
   }
 dev.off()
 
-png("../plots/tide_height&avg.png", height = 10, width = 12, units = "cm", res = 500)
+png("../plots/tide_height&avg.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
   ggplot(tide_data, aes(x = tide_height, y = avg_tide_depth, col = trip_length)) +
   geom_point( )+
   labs(x = "max tide height", y = "average tide height", col = "Duration (min)")+
