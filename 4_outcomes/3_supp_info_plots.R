@@ -49,9 +49,9 @@ for(i in 1:nsamp){
   B[i,] <- betab[i]*AGE #trait
 }
 
-png("../plots/prior_age_only.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
+png("../plots/prior_predictive_simulation.png", height = 3, width = 5, units = "in", res = 500, type="cairo")
 #plot prior predictive simulation
-par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,1), 
      xlab = "Age", ylab = "Proportion improvement",
      xaxt="n")
@@ -70,12 +70,12 @@ text(2.5, 0.4,expression(paste(beta,"=1,",gamma,"=10",sep = "")))
 lines (AGE, (1-exp(-3 * AGE  )) ^ 1,
        col = col.alpha("darkblue", 0.7))
 text(0.4, 0.7,expression(paste(beta,"=3,",gamma,"=1",sep = "")))
-dev.off()
+#dev.off()
 
 
-png("../plots/prior_age_and_trait_4.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
-#plot prior predictive simulation
-par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+# png("../plots/prior_age_and_trait_4.png", height = 3, width = 4, units = "in", res = 500)
+# #plot prior predictive simulation
+#par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,2), 
      xlab = "Age", ylab = "Proportion improvement",
      xaxt="n")
@@ -83,7 +83,7 @@ axis(1, at=seq(0,3,0.5),labels=seq(0,30,5))
 #calculate per sample
 lines (AGE, (1-exp(-1 * AGE  )) ^ 1,
        col = col.alpha("darkblue", 0.7))
-text(0.2, 1.9,expression(paste(beta,"=1,",gamma,"=1",sep = "")))
+text(0.5, 1.9,expression(paste(beta,"=1,",gamma,"=1",sep = "")))
 lines (AGE, (1-exp(-1 * AGE  )) ^ 1 * 
          ( 0.7 ) ^ 1,
        col = col.alpha("cornflowerblue", 0.7))
@@ -628,14 +628,21 @@ dev.off()
 ##########################
 #TIDE PLOTS
 ##########################
+<<<<<<< HEAD
 png("../plots/tide_distance_kernel.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
   par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+=======
+high_tide <- 3
+png("../plots/tide_distance.png", height = 7, width = 14, units = "cm", res = 500, type="cairo")
+  par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+>>>>>>> c22a2edda0d7abc30442e4c4b9632111797a75b0
   curve(exp(-0.07 * (x) ^2 ) *-1  , 
         xlim = c(-6,6), ylim = c(-1,0),
         xlab = "hours from max low tide", ylab = "proportion of high tide",
         col = "#1482ac", lwd = 2)
   points(c(-3.1, 3.1), c(-0.5,-0.5), pch = 16, cex = 1.5, col = "orange")
   text(0, -0.5, label = "mid-tide")
+<<<<<<< HEAD
   arrows(-1, -0.5, -2.9, -0.5, length = 0.1)
   arrows(1, -0.5, 2.9, -0.5, length = 0.1)
 dev.off()
@@ -644,6 +651,16 @@ dev.off()
 png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
   par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
   high_tide <- 3 #in meters. Consider searching for high tide value for each day #todo
+=======
+  # arrows(-1, -0.5, -2.9, -0.5, length = 0.1)
+  # arrows(1, -0.5, 2.9, -0.5, length = 0.1)
+# dev.off()
+# 
+# 
+# png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res = 500)
+#   par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+#   high_tide <- 3 #in meters. Consider searching for high tide value for each day #todo
+>>>>>>> c22a2edda0d7abc30442e4c4b9632111797a75b0
   
   #plot tide depth and range of tide heights when foraging
   curve((exp(-0.07 * (x) ^2 ) * - 4 ) + high_tide , 

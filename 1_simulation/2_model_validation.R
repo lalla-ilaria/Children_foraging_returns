@@ -54,7 +54,7 @@ m_trap_age <- cstan( file= "models/1_trap_age.stan" , data=dat_traps , chains=3,
 post_s <- extract.samples(m_shell_age)
 post_t <- extract.samples(m_trap_age)
 
-png("../plots/validate_model/fit_to_data_validation.png", height = 2, width = 4, units = "in", res = 500)
+png("../plots/validate_model/fit_to_data_validation.png", height = 2, width = 4, units = "in", res = 500, type="cairo"))
 par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 #shells
 phi <-  mean(post_s$iota) +
@@ -193,7 +193,7 @@ post_t <- extract.samples(m_traps_all)
 #make plots
 
 #check standardized  knowledge
-png("../plots/validate_model/knowledge_estimates_validation.png", height = 3, width = 4, units = "in", res = 500)
+png("../plots/validate_model/knowledge_estimates_validation.png", height = 3, width = 4, units = "in", res = 500, type="cairo"))
 par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 #shells
 sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
@@ -237,7 +237,7 @@ dev.off()
 #check traits by age shells
 sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
 presence_col <- ifelse(dat_shells$has_knowledge == "1", shellcol, "deepskyblue4")
-png("../plots/validate_model/missing_data_validation_shells.png", height = 5, width = 8, units = "in", res = 500)
+png("../plots/validate_model/missing_data_validation_shells.png", height = 5, width = 8, units = "in", res = 500, type="cairo"))
 par(mfrow = c(1,3),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 year_seq <- seq(0,4,0.2)
 plot(x = dat_shells$age, 
@@ -310,7 +310,7 @@ dev.off()
 sex_col <- ifelse(dat_traps$sex == "1", boycol, girlcol)
 presence_col <- ifelse(dat_traps$has_knowledge == "1", "deepskyblue4", "darkorange3")
 
-png("../plots/missing_data_validation_traps.png", height = 5, width = 8, units = "in", res = 500)
+png("../plots/missing_data_validation_traps.png", height = 5, width = 8, units = "in", res = 500, type="cairo"))
 par(mfrow = c(1,3),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 year_seq <- seq(0,4,0.2)
 plot(x = dat_traps$age, 
@@ -653,7 +653,7 @@ shell_posteriors <- list()
 traps_posteriors <- list()
 alphas <-vector(mode = "numeric",length = nrow(pars))
 
-png("../plots/validation_parameters_recovery.png", height = 5, width = 8, units = "in", res = 500)
+png("../plots/validation_parameters_recovery.png", height = 5, width = 8, units = "in", res = 500, type="cairo"))
 par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, 
      xlim = c( min(pars) - 1, max(pars) +1 ),
