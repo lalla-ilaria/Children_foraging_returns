@@ -54,7 +54,8 @@ m_trap_age <- cstan( file= "models/1_trap_age.stan" , data=dat_traps , chains=3,
 post_s <- extract.samples(m_shell_age)
 post_t <- extract.samples(m_trap_age)
 
-par(mfrow = c(2,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+png("../plots/validate_model/fit_to_data_validation.png", height = 2, width = 4, units = "in", res = 500)
+par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 #shells
 phi <-  mean(post_s$iota) +
   median(post_s$gamma) * log(1-exp(- mean(post_s$beta) * seq_trait  )) 
@@ -110,7 +111,7 @@ points(jitter(dat_traps$age[dat_traps$ID_i]* mean(d$age), amount = 0.5),
        pch = 16,  
        col = col.alpha(othercol, 0.6))
 text(1, 0.95, "B")
-
+dev.off()
 
 
 
