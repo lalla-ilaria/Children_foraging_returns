@@ -663,7 +663,7 @@ legend(min(pars)-0.8, max(pars)+1.5, legend = c("g", "h","k"), col = othercol, p
 
 for ( j in 1:nrow(pars)){
   #SHELLS
-  d <- sim_data(50, 100, zero = F, g_g = pars[j,1], g_h = pars[j,2], g_k = pars[j,3])#all parameters are 0.3
+  d <- sim_data(50, 100, zero = F, g_g = pars[j,"g_g"], g_h = pars[j,"g_h"], g_k = pars[j,"g_k"])#all parameters are 0.3
   order_of_magnitude <- ifelse(max(d$returns) <= 40, 0, Magnitude(max(d$returns)))
   #plot(d$age[d$ID_ind], d$returns/ 10 ^ order_of_magnitude)
   dat_shells <- list(
@@ -695,7 +695,7 @@ for ( j in 1:nrow(pars)){
   
   
   d <- sim_data(30, 1000, zero = T, 
-                g_g = pars[j,1], g_h = pars[j,2], g_k = pars[j,3],
+                g_g = pars[j,"g_g"], g_h = pars[j,"g_h"], g_k = pars[j,"g_k"],
                 alpha_success = 0.2)#all parameters are 0.3
   
   #TRAPS

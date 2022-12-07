@@ -19,8 +19,11 @@ dat_shells <- make_list_data_age(foraging_type = "shells")
 dat_traps <- make_list_data_age(foraging_type = "traps")
 
 #plot fit to data with age only
-post_s <- extract.samples(m_shells_age)
-post_t <- extract.samples(m_traps_age)
+post_s <- extract.samples(m_shell_age)
+post_t <- extract.samples(m_trap_age)
+
+#post_s <- loadRDS(...)
+#loadRDS
 
 
 png("../plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type="cairo")

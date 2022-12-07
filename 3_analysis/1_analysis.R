@@ -33,13 +33,13 @@ dat_traps_all <- make_list_data_all(foraging_type = "traps")
 
 #remove NA values - stan does not accept them - subsitute with ridiculous value
 dat_shells_all[["answers"]][is.na(dat_shells_all[["answers"]])] <- -999
-#dat_shells_all[["knowledge"]][is.na(dat_shells_all[["knowledge"]])] <- -999
+dat_shells_all[["knowledge_nit"]][is.na(dat_shells_all[["knowledge_nit"]])] <- -999
 dat_shells_all[["height"]][is.na(dat_shells_all[["height"]])] <- -999
 dat_shells_all[["grip"]][is.na(dat_shells_all[["grip"]])] <- -999
 
 
 dat_traps_all[["answers"]][is.na(dat_traps_all[["answers"]])] <- -999
-#dat_traps_all[["knowledge"]][is.na(dat_traps_all[["knowledge"]])] <- -999
+dat_traps_all[["knowledge_nit"]][is.na(dat_traps_all[["knowledge_nit"]])] <- -999
 dat_traps_all[["height"]][is.na(dat_traps_all[["height"]])] <- -999
 dat_traps_all[["grip"]][is.na(dat_traps_all[["grip"]])] <- -999
 
@@ -68,12 +68,12 @@ save(post_t, file = "4_outcomes/model_fit/post_t.rda")
 #################
 dat_tides <- dat_shells_age [ c("M", "ID_i", "tide", "age")]
 
-dat_tides$age <- d_tides$age[d_tides$ID_i]
+dat_tides$age <- dat_tides$age[dat_tides$ID_i]
 
 m_tide <- cstan(file = "models/tide_age.stan", data = dat_tides)
 
 
-
+#save here fit for figures
 
 
 
