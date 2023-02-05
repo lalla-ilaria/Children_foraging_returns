@@ -18,10 +18,9 @@
 dat_shells <- make_list_data_age(foraging_type = "shells")
 dat_traps <- make_list_data_age(foraging_type = "traps")
 
-#plot fit to data with age only
-post_s <- extract.samples(m_shell_age)
-post_t <- extract.samples(m_trap_age)
-
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_age.rda")
+load(file = "4_outcomes/model_fit/post_t_age.rda")
 
 png("../plots/age_only.png", height = 16, width = 16, units = "cm", res = 500)
   par(mfrow = c(2,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
@@ -37,7 +36,7 @@ png("../plots/age_only.png", height = 16, width = 16, units = "cm", res = 500)
   plot(jitter(seq_trait) * mean_age_shells, samp_data, 
        xlim = c(0,age_plot), ylim = c(0, max(dat_shells$returns)+1), 
        xlab = "Age", ylab = "kg shellfish",
-       pch = 16, col = col.alpha("orange", 0.2))
+       pch = 16, col = col.alpha("orange", 0.6))
   for(i in 1:150){
     phi <-  apply(post_s$iota,1,mean )[i] +
             post_s$gamma[i] * log(1-exp(- post_s$beta[i] * seq_trait  )) 
@@ -50,44 +49,48 @@ png("../plots/age_only.png", height = 16, width = 16, units = "cm", res = 500)
   }
   points(jitter(dat_shells$age[dat_shells$ID_i] * mean_age_shells, amount = 0.4), 
          as.numeric(dat_shells$returns),
-         pch = 16, cex = 0.8, col = col.alpha(othercol, 0.4))
+         pch = 16, cex = 0.7, col = col.alpha(othercol, 0.6))
   text(1, max(dat_shells$returns)+0.5, "A")
 
   #traps 
   phi <-  mean(post_t$iota) +
           mean(post_t$gamma) * log(1-exp(- mean(post_t$beta) * seq_trait  )) 
   psi <-  mean(post_t$xi) * (mean(log (dat_traps$duration))) 
-  p <- 1 - exp ( - mean(post_t$alpha) * exp(phi) * exp(psi))
-  samp_data <- rbern(length(seq_trait),  p)
+  #p <- 1 - exp ( - mean(post_t$alpha) * exp(phi) * exp(psi))
+  #samp_data <- rbern(length(seq_trait),  p)
+  lambda <- mean(post_t$alpha) * exp(phi) * exp(psi)
+  samp_data <- rpois(length(seq_trait),  lambda)
   
   #NB making plot with 13212 only (one of best hunters) to make plot with optimal situation to raise curve off zero
   plot(jitter(seq_trait) * mean_age_traps, samp_data, 
-       xlab = "Age", ylab = "p capture",
-       xlim = c(0,age_plot), ylim = c(0, 1), 
-       pch = 16, col = col.alpha("lawngreen", 0.3))
-  #with ideal conditions (best actor, shortest time)
+       xlab = "Age", ylab = "n captures",
+       xlim = c(0,age_plot), ylim = c(-0.1, 3.1), 
+       pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
+  #with ideal conditions (best actor, longest time)
   for(i in 1:150){
     phi <-  post_t$iota[i,dat_traps$best_guy] + 
             post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait)) 
-    psi <-  post_t$xi[i] * log(min(dat_traps$duration))  
-    p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
-    lines( seq_trait * mean_age_traps,  p, 
-           col = col.alpha(trapcol, 0.2), lwd = 1)
+    psi <-  post_t$xi[i] * log(max(dat_traps$duration))  
+    #p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
+    #lines( seq_trait * mean_age_traps,  p, 
+    lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
+    lines( seq_trait * mean_age_traps,  lambda + 0.1, 
+      col = col.alpha(trapcol, 0.2), lwd = 1)
   }
   #with average actor and average time 
   # for(i in 1:150){
   #   phi <-  apply(post_t$iota,1,mean )[i] + 
   #           post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait)) 
   #   psi <-  post_t$xi[i] * mean(log(dat_traps$duration))  
-  #   p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
-  #   lines( seq_trait * mean(d_trapppl$age),  p, 
-  #          col = col.alpha(trapcol, 0.2), lwd = 1)
+  #   lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
+  #   lines( seq_trait * mean_age_traps,  lambda + 0.1, 
+  #       col = col.alpha(trapcol, 0.2), lwd = 1)
   # }
   points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
-         jitter(dat_traps$success, amount = 0.02), 
-    pch = 16, cex = ifelse(dat_traps$success == 1, 0.8, 0.6), 
-    col = col.alpha(othercol, ifelse(dat_traps$success == 1, 0.4, 0.1)))
-  text(1, 0.95, "B")
+         jitter(dat_traps$success, amount = 0.1), 
+    pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
+    col = col.alpha(othercol, ifelse(dat_traps$success >= 1, 0.7, 0.4)))
+  text(1, 2.95, "B")
   
 #######################################
 #age variation
@@ -132,8 +135,9 @@ dev.off()
 dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
-post_s <- extract.samples(m_shells_all)
-post_t <- extract.samples(m_traps_all)
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_all.rda")
+load(file = "4_outcomes/model_fit/post_t_all.rda")
 
 
 
@@ -192,7 +196,8 @@ for (i in 1:4) {
     #post_s$zeta_k* ifelse( i == 3, min(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) )
     post_t$zeta_k* ifelse( i == 3, min(apply(post_t$knowledge, 2, mean)), mean(apply(post_t$knowledge, 2, mean) ) ) 
   psi <-  post_t$xi * ifelse( i == 4, min(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE) ) 
-  min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+  #min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+  min_k <- post_t$alpha * exp(phi_min) * exp(psi)
   phi_max <-  apply(post_t$iota,1,mean )  +
     post_t$gamma * log(1-exp(- post_t$beta * 1.23  )) +
     post_t$theta_g* ifelse( i == 1, max(log(dat_traps$grip), na.rm = TRUE), mean(log(dat_traps$grip), na.rm = TRUE) ) +
@@ -200,7 +205,8 @@ for (i in 1:4) {
     #post_s$zeta_k* ifelse( i == 3, max(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) ) +
     post_t$zeta_k* ifelse( i == 3, max(apply(post_t$knowledge, 2, mean)), mean( apply(post_t$knowledge, 2, mean) ) ) 
   psi <-  post_t$xi * ifelse( i == 4, max(log(dat_traps$height), na.rm = TRUE), mean(log(dat_traps$height), na.rm = TRUE) ) 
-  max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+  #max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+  max_k <- post_t$alpha * exp(phi_max) * exp(psi)
   diffs_out[i + 5] <- max_k - min_k
   if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
 }

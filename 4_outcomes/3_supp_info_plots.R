@@ -124,9 +124,9 @@ for(i in 1:nsamp){
 dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
-#load fit to extract knowledge values and overlay posterior
-post_s <- extract.samples(m_shells_all)
-post_t <- extract.samples(m_traps_all)
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_all.rda")
+load(file = "4_outcomes/model_fit/post_t_all.rda")
 
 #define priors
 n_samp <- nrow(post_s$alpha)
@@ -193,7 +193,8 @@ for (i in 1:4) {
     #zeta_k* ifelse( i == 3, min(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) )
     zeta_k* ifelse( i == 3, min(apply(post_t$knowledge, 2, mean)), mean(apply(post_t$knowledge, 2, mean) ) ) 
   psi <-  xi * ifelse( i == 4, min(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE) ) 
-  min_k <- 1 - exp ( - alpha * exp(phi_min) * exp(psi))
+  #min_k <- 1 - exp ( - alpha * exp(phi_min) * exp(psi))
+  min_k <- alpha * exp(phi_min) * exp(psi)
   phi_max <-  iota  +
     gamma * log(1-exp(- beta * 1.23  )) +
     theta_g* ifelse( i == 1, max(log(dat_traps$grip), na.rm = TRUE), mean(log(dat_traps$grip), na.rm = TRUE) ) +
@@ -201,7 +202,8 @@ for (i in 1:4) {
     #zeta_k* ifelse( i == 3, max(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) ) +
     zeta_k* ifelse( i == 3, max(apply(post_t$knowledge, 2, mean)), mean( apply(post_t$knowledge, 2, mean) ) ) 
   psi <-  xi * ifelse( i == 4, max(log(dat_traps$height), na.rm = TRUE), mean(log(dat_traps$height), na.rm = TRUE) ) 
-  max_k <- 1 - exp ( - alpha * exp(phi_max) * exp(psi))
+  #max_k <- 1 - exp ( - alpha * exp(phi_max) * exp(psi))
+  max_k <- alpha * exp(phi_max) * exp(psi)
   diffs_out[i + 5] <- max_k - min_k
   if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
 }
@@ -278,7 +280,8 @@ for (i in 1:4) {
     #post_s$zeta_k* ifelse( i == 3, min(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) )
     post_t$zeta_k* ifelse( i == 3, min(apply(post_t$knowledge, 2, mean)), mean(apply(post_t$knowledge, 2, mean) ) ) 
   psi <-  post_t$xi * ifelse( i == 4, min(log(dat_traps$duration), na.rm = TRUE), mean(log(dat_traps$duration), na.rm = TRUE) ) 
-  min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+  #min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+  min_k <- post_t$alpha * exp(phi_min) * exp(psi)
   phi_max <-  apply(post_t$iota,1,mean )  +
     post_t$gamma * log(1-exp(- post_t$beta * 1.23  )) +
     post_t$theta_g* ifelse( i == 1, max(log(dat_traps$grip), na.rm = TRUE), mean(log(dat_traps$grip), na.rm = TRUE) ) +
@@ -286,7 +289,8 @@ for (i in 1:4) {
     #post_s$zeta_k* ifelse( i == 3, max(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) ) +
     post_t$zeta_k* ifelse( i == 3, max(apply(post_t$knowledge, 2, mean)), mean( apply(post_t$knowledge, 2, mean) ) ) 
   psi <-  post_t$xi * ifelse( i == 4, max(log(dat_traps$height), na.rm = TRUE), mean(log(dat_traps$height), na.rm = TRUE) ) 
-  max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+  #max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+  max_k <- post_t$alpha * exp(phi_max) * exp(psi)
   diffs_out[i + 5] <- max_k - min_k
   if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
 }
@@ -364,7 +368,10 @@ dev.off()
 ##################################################
 #AGE ONLY - traps with average 
 ##################################################
-post_t <- extract.samples(m_trap_age)
+#load samples from model fit
+dat_traps <- make_list_data_age(foraging_type = "traps")
+load(file = "4_outcomes/model_fit/post_t_age.rda")
+
 png("../plots/age_only_trap_mean.png", height = 8, width = 8, units = "cm", res = 500, type="cairo")
 par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 
@@ -372,36 +379,37 @@ par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 phi <-  mean(post_t$iota) +
   mean(post_t$gamma) * log(1-exp(- mean(post_t$beta) * seq_trait  )) 
 psi <-  mean(post_t$xi) * (mean(log (dat_traps$duration))) 
-p <- 1 - exp ( - mean(post_t$alpha) * exp(phi) * exp(psi))
-samp_data <- rbern(length(seq_trait),  p)
-
-plot(jitter(seq_trait) * mean(real_data$trap_ppl$age), samp_data, 
-     xlab = "Age", ylab = "p capture",
-     xlim = c(0,age_plot), ylim = c(0, 1), 
-     pch = 16, col = col.alpha("lawngreen", 0.3))
+lambda <- mean(post_t$alpha) * exp(phi) * exp(psi)
+samp_data <- rpois(length(seq_trait),  lambda)
+plot(jitter(seq_trait) * mean_age_traps, samp_data, 
+     xlab = "Age", ylab = "n captures",
+     xlim = c(0,age_plot), ylim = c(-0.1, 3.1), 
+     pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
 #with average actor and average time 
 for(i in 1:150){
   phi <-  apply(post_t$iota,1,mean )[i] +
           post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait))
   psi <-  post_t$xi[i] * mean(log(dat_traps$duration))
-  p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
-  lines( seq_trait * mean_age_traps,  p,
-         col = col.alpha(trapcol, 0.2), lwd = 1)
+  lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
+  lines( seq_trait * mean_age_traps,  lambda + 0.1,
+      col = col.alpha(trapcol, 0.2), lwd = 1)
 }
 points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
-       jitter(dat_traps$success, amount = 0.02), 
-       pch = 16, cex = ifelse(dat_traps$success == 1, 0.8, 0.6), 
-       col = col.alpha(othercol, ifelse(dat_traps$success == 1, 0.4, 0.1)))
+       jitter(dat_traps$success, amount = 0.1), 
+       pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
+       col = col.alpha(othercol, ifelse(dat_traps$success >= 1, 0.7, 0.4)))
+
 dev.off()
 
 ##########################################################################
 #AGE ONLY -TIDE MODEL
 ##########################################################################
-dat_tides <- dat_shells_age [ c("M", "ID_i", "tide", "age")]
+dat_shells <- make_list_data_age(foraging_type = "shells")
+dat_tides <- dat_shells [ c("M", "ID_i", "tide", "age")]
 
-dat_tides$age <- d_tides$age[d_tides$ID_i]
+dat_tides$age <- dat_tides$age[dat_tides$ID_i]
 
-m_tide <- cstan(file = "models/tide_age.stan", data = dat_tides)
+m_tide <- cstan(file = "models/tide_age.stan", data = dat_tides, chains = 3, cores = 3, iter = 2000)
 post_tide <- extract.samples (m_tide)
 
 dat_tides$age <- dat_tides$age * mean_age_shells
@@ -439,8 +447,9 @@ dev.off()
 dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
-post_s <- extract.samples(m_shells_all)
-post_t <- extract.samples(m_traps_all)
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_all.rda")
+load(file = "4_outcomes/model_fit/post_t_all.rda")
 
 # #check standardized  knowledge
 # png("../plots/knowledge_estimates_validation.png", height = 3, width = 4, units = "in", res = 500)
@@ -500,13 +509,13 @@ plot(x = dat_shells$age * mean_age_shells,
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
 for (i in 1:100) {
-  lines(x = year_seq  * mean_age_shells,  
-        y = dat_shells$min_height + post_s$kappa[i,1] * ( 1 - exp(-post_s$lambda[i,1] * year_seq)) ,  
+  lines(x = seq_trait  * mean_age_shells,  
+        y = dat_shells$min_height + post_s$kappa[i,1] * ( 1 - exp(-post_s$lambda[i,1] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
-  lines(x = year_seq  * mean_age_shells,  
-        y = dat_shells$min_height + post_s$kappa[i,2] * ( 1 - exp(-post_s$lambda[i,2] * year_seq)) ,  
+  lines(x = seq_trait  * mean_age_shells,  
+        y = dat_shells$min_height + post_s$kappa[i,2] * ( 1 - exp(-post_s$lambda[i,2] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -521,13 +530,13 @@ plot(x = dat_shells$age  * mean_age_shells,
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
 for (i in 1:100) {
-  lines(x = year_seq* mean_age_shells,  
-        y = post_s$epsilon[i,1] * ( 1 - exp(-post_s$upsilon[i,1] * year_seq)) ,  
+  lines(x = seq_trait* mean_age_shells,  
+        y = post_s$epsilon[i,1] * ( 1 - exp(-post_s$upsilon[i,1] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_shells,  
-        y = post_s$epsilon[i,2] * ( 1 - exp(-post_s$upsilon[i,2] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_shells,  
+        y = post_s$epsilon[i,2] * ( 1 - exp(-post_s$upsilon[i,2] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -542,13 +551,13 @@ plot(x = dat_shells$age * mean_age_shells,
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_shells,  
-        y = post_s$omega[i] + post_s$chi[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_shells,  
+        y = post_s$omega[i] + post_s$chi[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_shells,  
-        y = post_s$omega[i] + post_s$chi[i,2] * ( 1 - exp(-post_s$ro_age[i,2] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_shells,  
+        y = post_s$omega[i] + post_s$chi[i,2] * ( 1 - exp(-post_s$ro_age[i,2] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 dev.off()
@@ -572,13 +581,13 @@ plot(x = dat_traps$age * mean_age_traps,
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_traps,  
-        y = dat_traps$min_height + post_t$kappa[i,1] * ( 1 - exp(-post_t$lambda[i,1] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_traps,  
+        y = dat_traps$min_height + post_t$kappa[i,1] * ( 1 - exp(-post_t$lambda[i,1] * se)) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_traps,  
-        y = dat_traps$min_height + post_t$kappa[i,2] * ( 1 - exp(-post_t$lambda[i,2] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_traps,  
+        y = dat_traps$min_height + post_t$kappa[i,2] * ( 1 - exp(-post_t$lambda[i,2] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -593,13 +602,13 @@ plot(x = dat_traps$age * mean_age_traps,
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_traps,  
-        y = post_t$epsilon[i,1] * ( 1 - exp(-post_t$upsilon[i,1] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_traps,  
+        y = post_t$epsilon[i,1] * ( 1 - exp(-post_t$upsilon[i,1] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_traps,  
-        y = post_t$epsilon[i,2] * ( 1 - exp(-post_t$upsilon[i,2] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_traps,  
+        y = post_t$epsilon[i,2] * ( 1 - exp(-post_t$upsilon[i,2] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -614,13 +623,13 @@ plot(x = dat_traps$age * mean_age_traps,
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 )  )
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_traps,
-        y = post_t$omega[i] + post_t$chi[i,1] * ( 1 - exp(-post_t$ro_age[i,1] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_traps,
+        y = post_t$omega[i] + post_t$chi[i,1] * ( 1 - exp(-post_t$ro_age[i,1] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
-  lines(x = year_seq * mean_age_traps, 
-        y = post_t$omega[i] + post_t$chi[i,2] * ( 1 - exp(-post_t$ro_age[i,2] * year_seq)) ,  
+  lines(x = seq_trait * mean_age_traps, 
+        y = post_t$omega[i] + post_t$chi[i,2] * ( 1 - exp(-post_t$ro_age[i,2] * seq_trait)) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 dev.off()
@@ -710,7 +719,7 @@ dev.off()
 # #check knowledge by age
 # png("../plots/knowledge_age.png", height = 5, width = 8, units = "in", res = 500)
 # par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
-# year_seq <- seq(0,4,0.2)
+# seq_trait <- seq(0,4,0.2)
 # plot(x = dat_shells$age * mean_age_shells, 
 #      y = apply(post_s$knowledge, 2, median), 
 #      xlim = c(0,40),
@@ -722,13 +731,13 @@ dev.off()
 #      cex = 1.5, 
 #      col =  alpha( sex_col , 0.6 )  )
 # for (i in 1:250) {
-#   lines(x = year_seq * mean_age_shells,  
-#         y = post_s$omega[i] + post_s$chi[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * year_seq)) ,  
+#   lines(x = seq_trait * mean_age_shells,  
+#         y = post_s$omega[i] + post_s$chi[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * seq_trait)) ,  
 #         type = "l", 
 #         col = col.alpha( boycol, alpha = 0.1))}
 # for (i in 1:250) {
-#   lines(x = year_seq * mean_age_shells,  
-#         y = post_s$omega[i] + post_s$chi[i,2] * ( 1 - exp(-post_s$ro_age[i,2] * year_seq)) ,  
+#   lines(x = seq_trait * mean_age_shells,  
+#         y = post_s$omega[i] + post_s$chi[i,2] * ( 1 - exp(-post_s$ro_age[i,2] * seq_trait)) ,  
 #         type = "l", 
 #         col = col.alpha( girlcol, alpha = 0.1))}
 # dev.off()
@@ -808,7 +817,7 @@ dev.off()
 #      pch = 19, col = presence_col)
 # 
 # #check knowledge by age
-# year_seq <- seq(0,4,0.2)
+# seq_trait <- seq(0,4,0.2)
 # plot(x = dat_traps$age * mean_age_traps, 
 #      y = apply(post_t$knowledge, 2, mean), 
 #      xlim = c(0,4),
@@ -820,7 +829,7 @@ dev.off()
 #      cex = 1.5, 
 #      col =  alpha( sex_col , 0.6 )  )
 # for (i in 1:250) {
-#   lines(x = year_seq ,  
+#   lines(x = seq_trait ,  
 #         y = post_t$omega[i] + post_t$chi[i,1] * ( 1 - exp(-post_t$ro_age[i,1] * year_seq)) ,  
 #         type = "l", 
 #         col = col.alpha( boycol, alpha = 0.1))}

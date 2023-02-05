@@ -7,8 +7,9 @@ mean_age_traps <- mean(real_data$trap_ppl$age)
 ##########################################################################
 #PREPARE DATA - AGE ONLY
 ##########################################################################
-#SHELLS
+#prepares lists to be passed to stan models. Can prepare either shell, trap, or all_trap data for respectively
 make_list_data_age <- function(data = real_data, foraging_type ){
+    #SHELLS
       d_shellppl <- data$shell_ppl
       d_shells <- data$shells
       
@@ -23,13 +24,13 @@ make_list_data_age <- function(data = real_data, foraging_type ){
       for ( i in 1:nrow(d_shells)){
         d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
       }
-      #TRAPS
+    #TRAPS
       d_trapppl <- data$trap_ppl
       d_traps <- data$traps
+      d_traps <- data$traps %>% filter(exposure > 0)
       
       #keep only foraging data
       d_trapppl <- d_trapppl %>% filter(data == "traps")
-      d_traps <- d_traps[which(d_traps$lenght_hour >= 1), ]
       
       #add index variables
       #index and sort all individuals so we can loop across them
@@ -43,10 +44,30 @@ make_list_data_age <- function(data = real_data, foraging_type ){
       best_guy <- d_trapppl$index_id[which(d_trapppl$anonymeID == 13212)]
       
       
+      #ALL TRAPS
+      d_all_trapppl <- data$trap_ppl
+      d_all_traps <- data$all_traps
+      
+      #keep only foraging data
+      d_all_trapppl <- d_all_trapppl %>% filter(data == "traps")
+      d_all_traps <- d_all_traps[which(d_all_traps$lenght_hour >= 1), ]
+      
+      #add index variables
+      #index and sort all individuals so we can loop across them
+      d_all_trapppl$index_id <- as.integer(as.factor(d_all_trapppl$anonymeID))
+      d_all_trapppl <- d_all_trapppl[order(d_all_trapppl$index_id),]
+      for ( i in 1:nrow(d_all_traps)){
+        d_all_traps$index_id[i] <- d_all_trapppl$index_id[which ( d_all_trapppl$anonymeID == d_all_traps$anonymeID[i])]
+      }
+      
+      #index id of best actor
+      best_all_trap_guy <- d_all_trapppl$index_id[which(d_all_trapppl$anonymeID == 13212)]
+      
+      
       dat_shells_age <- list(
         N = nrow(d_shellppl),
         M = nrow(d_shells),
-        age = d_shellppl$age / mean(real_data$shell_ppl$age),
+        age = d_shellppl$age / mean(data$shell_ppl$age),
         returns = as.numeric(d_shells$returns)/1000,
         duration = d_shells$lenght_min/mean(d_shells$lenght_min),
         tide = d_shells$tide_avg_depth,
@@ -59,16 +80,31 @@ make_list_data_age <- function(data = real_data, foraging_type ){
         M = nrow(d_traps),                         #n trip/person
         ID_i= d_traps$index_id,                    #index of person of trip 
         success = d_traps$success,                 #whether trap captured something
-        age = d_trapppl$age / mean(real_data$trap_ppl$age),
-        duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+        age = d_trapppl$age / mean(data$trap_ppl$age),
+        duration = d_traps$exposure/mean(d_traps$exposure),
         best_guy = best_guy
       )
-    #return either type of data  
+      
+      dat_all_traps_age <- list(
+        N = nrow(d_all_trapppl),                       #n individuals in total sample
+        M = nrow(d_all_traps),                         #n trip/person
+        ID_i= d_all_traps$index_id,                    #index of person of trip 
+        success = d_all_traps$success,                 #whether trap captured something
+        age = d_all_trapppl$age / mean(data$trap_ppl$age),
+        duration = d_all_traps$lenght_hour/mean(d_all_traps$lenght_hour),
+        best_all_trap_guy = best_all_trap_guy
+      )
+      
+      #return either type of data  
   if(foraging_type == "shells"){
     return(dat_shells_age)
   }else{
     if(foraging_type == "traps"){
       return(dat_traps_age)
+    } else{
+      if(foraging_type == "all_traps"){
+        return(dat_all_traps_age)
+      }
     }
   }
 }
@@ -99,6 +135,7 @@ make_list_data_all <- function(data = real_data, foraging_type ){
       #TRAPS
       d_trapppl <- data$trap_ppl
       d_traps <- data$traps
+      d_traps <- data$traps %>% filter(exposure > 0)
       d_trap_k <- data$trap_k
       
       #add index variables
@@ -109,11 +146,27 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         d_traps$index_id[i] <- d_trapppl$index_id[which ( d_trapppl$anonymeID == d_traps$anonymeID[i])]
       }
       
-      #remove traps shorter than one hour
-      d_traps <- d_traps[which(d_traps$lenght_hour >= 1), ]
-      
       #sort knowledge data
       d_trap_k <- d_trap_k[ order(row.names(d_trap_k)), ]
+      
+      #ALL TRAPS
+      d_all_trapppl <- data$trap_ppl
+      d_all_traps <- data$all_traps
+      d_all_trap_k <- data$trap_k
+      
+      #add index variables
+      #index and sort all individuals so we can loop across them
+      d_all_trapppl$index_id <- as.integer(as.factor(d_all_trapppl$anonymeID))
+      d_all_trapppl <- d_all_trapppl[order(d_all_trapppl$index_id),]
+      for ( i in 1:nrow(d_all_traps)){
+        d_all_traps$index_id[i] <- d_all_trapppl$index_id[which ( d_all_trapppl$anonymeID == d_all_traps$anonymeID[i])]
+      }
+      
+      #remove traps shorter than one hour
+      d_all_traps <- d_all_traps[which(d_all_traps$lenght_hour >= 1), ]
+      
+      #sort knowledge data
+      d_all_trap_k <- d_all_trap_k[ order(row.names(d_all_trap_k)), ]
       
       #SHELLS
       dat_shells_all <- list(
@@ -150,7 +203,7 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         success = d_traps$success,                 #whether trap captured something
         age = d_trapppl$age / mean(real_data$trap_ppl$age),
         sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
-        duration = d_traps$lenght_hour/mean(d_traps$lenght_hour),
+        duration = d_traps$exposure/mean(d_traps$exposure),
         #height data
         has_height = ifelse(is.na(d_trapppl$height), 0, 1),# #vector of 0/1 for whether height has to be imputed
         height = d_trapppl$height/mean(d_trapppl$height, na.rm = TRUE),
@@ -164,13 +217,42 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         Q = ncol(d_trap_k),                        #n items in freelist
         answers = d_trap_k                       #all answers from freelist
       )
+      
+      #ALL TRAPS
+      dat_all_traps_all <- list(
+        #foraging data
+        N = nrow(d_all_trapppl),                       #n individuals in total sample
+        M = nrow(d_all_traps),                         #n trip/person
+        ID_i= d_all_traps$index_id,                    #index of person of trip 
+        has_foraging = ifelse(d_all_trapppl$data == "traps", 1, 0),
+        success = d_all_traps$success,                 #whether trap captured something
+        age = d_all_trapppl$age / mean(data$trap_ppl$age),
+        sex = ifelse(d_all_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
+        duration = d_all_traps$lenght_hour/mean(d_all_traps$lenght_hour),
+        #height data
+        has_height = ifelse(is.na(d_all_trapppl$height), 0, 1),# #vector of 0/1 for whether height has to be imputed
+        height = d_all_trapppl$height/mean(d_all_trapppl$height, na.rm = TRUE),
+        min_height = 50/mean(d_all_trapppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
+        #grip data
+        has_grip = ifelse(is.na(d_all_trapppl$grip), 0, 1),# #vector of 0/1 for whether grip has to be imputed
+        grip = d_all_trapppl$grip/mean(d_all_trapppl$grip, na.rm = TRUE),
+        #knowledge data
+        has_knowledge = ifelse(is.na(d_all_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
+        knowledge_nit = d_all_trapppl$knowledge/mean(d_all_trapppl$knowledge, na.rm = TRUE),
+        Q = ncol(d_all_trap_k),                        #n items in freelist
+        answers = d_all_trap_k                       #all answers from freelist
+      )
+      
       #return either type of data  
   if(foraging_type == "shells"){
     return(dat_shells_all)
   }else{
     if(foraging_type == "traps"){
       return(dat_traps_all)
+    } else{
+      if(foraging_type == "all_traps"){
+        return(dat_all_traps_all)
+      }
     }
   }
 }
-
