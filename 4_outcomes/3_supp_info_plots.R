@@ -637,15 +637,30 @@ dev.off()
 ##########################
 #TIDE PLOTS
 ##########################
+<<<<<<< HEAD
+png("../plots/tide_distance_kernel.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
+  par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+=======
 high_tide <- 3
 png("../plots/tide_distance.png", height = 7, width = 14, units = "cm", res = 500, type="cairo")
   par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+>>>>>>> c22a2edda0d7abc30442e4c4b9632111797a75b0
   curve(exp(-0.07 * (x) ^2 ) *-1  , 
         xlim = c(-6,6), ylim = c(-1,0),
         xlab = "hours from max low tide", ylab = "proportion of high tide",
         col = "#1482ac", lwd = 2)
   points(c(-3.1, 3.1), c(-0.5,-0.5), pch = 16, cex = 1.5, col = "orange")
   text(0, -0.5, label = "mid-tide")
+<<<<<<< HEAD
+  arrows(-1, -0.5, -2.9, -0.5, length = 0.1)
+  arrows(1, -0.5, 2.9, -0.5, length = 0.1)
+dev.off()
+
+
+png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
+  par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+  high_tide <- 3 #in meters. Consider searching for high tide value for each day #todo
+=======
   # arrows(-1, -0.5, -2.9, -0.5, length = 0.1)
   # arrows(1, -0.5, 2.9, -0.5, length = 0.1)
 # dev.off()
@@ -654,6 +669,7 @@ png("../plots/tide_distance.png", height = 7, width = 14, units = "cm", res = 50
 # png("../plots/tide_height_trip.png", height = 10, width = 12, units = "cm", res = 500)
 #   par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 #   high_tide <- 3 #in meters. Consider searching for high tide value for each day #todo
+>>>>>>> c22a2edda0d7abc30442e4c4b9632111797a75b0
   
   #plot tide depth and range of tide heights when foraging
   curve((exp(-0.07 * (x) ^2 ) * - 4 ) + high_tide , 
@@ -1817,3 +1833,36 @@ dev.off()
 # # then combine with the top row for final plot
 # plot_grid(plots[[1]], bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
 # dev.off()
+
+png("../plots/simple_data.png", height = 8, width = 16, units = "cm", res = 500, type="cairo")
+par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+
+plot(jitter(dat_shells$age[dat_shells$ID_i] * mean_age_shells, amount = 0.4), 
+     as.numeric(dat_shells$returns), 
+     xlim = c(0,age_plot), ylim = c(0, max(dat_shells$returns)+1), 
+     xlab = "umri", ylab = "kg komba",
+     pch = 16, col = col.alpha(shellcol, 0.8))
+phi <-  mean(post_s$iota) +
+  mean(post_s$gamma) * log(1-exp(- mean(post_s$beta) * seq_trait  )) 
+psi <-  mean(post_s$xi) * (mean(log(dat_shells$duration))) +  
+  mean(post_s$tau)* mean(dat_shells$tide)
+R <- exp (  log(mean(post_s$alpha)) + phi + psi + 
+              (mean(post_s$sigma)^2 /2))
+lines( seq_trait * mean_age_shells,  R, 
+       col = col.alpha("orange", 0.8), lwd = 3)
+
+plot(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
+     jitter(dat_traps$success, amount = 0.02),
+     xlab = "umri", ylab = "p kuwinda",
+     xlim = c(0,age_plot), ylim = c(0, 1), 
+     pch = 16, col = col.alpha(trapcol, 0.6))
+phi <-  apply(post_t$iota,1,mean )[i] + 
+     post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait)) 
+psi <-  post_t$xi[i] * mean(log(dat_traps$duration))  
+p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
+lines( seq_trait * mean_age_traps,  p, 
+     col = col.alpha("lawngreen", 0.8), lwd = 3)
+text(10, 0.1, paste(length(unique(real_data$traps$trap_ID)), "fyuka"))
+text(30, 0.9, paste(sum(dat_traps$success), "mawindo"))
+
+dev.off()

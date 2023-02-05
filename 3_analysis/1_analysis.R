@@ -68,12 +68,12 @@ save(post_t, file = "4_outcomes/model_fit/post_t_all.rda")
 #################
 dat_tides <- dat_shells_age [ c("M", "ID_i", "tide", "age")]
 
-dat_tides$age <- d_tides$age[d_tides$ID_i]
+dat_tides$age <- dat_tides$age[dat_tides$ID_i]
 
 m_tide <- cstan(file = "models/tide_age.stan", data = dat_tides)
 
 
-
+#save here fit for figures
 
 
 
