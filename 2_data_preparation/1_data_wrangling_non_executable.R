@@ -742,15 +742,6 @@ generated_quantities$n_traps_success1 <- length(unique(traps$trap_ID[which(traps
 generated_quantities$n_traps_preys <- sum(traps$success)
 
 
-round(generated_quantities[[2]], digits = 2)
-
-
-#round generated data to two decimal points
-for(i in 1:length(generated_quantities)){
-  generated_quantities[[i]] <- round(generated_quantities[[i]], digits = 2)
-
-}
-  
 
 
 ######################
@@ -771,5 +762,5 @@ rm(list=setdiff(ls(), c("d", "shells", "all_trap_data", "traps", "trap_ppl", "sh
 
 list.save(d, '2_Data_preparation/processed_data.RData')
 write.csv(tide_data, '2_data_preparation/tide_data.csv', row.names = FALSE)
-write.csv(do.call(rbind, generated_quantities), "2_data_preparation/generated_quantities.csv")
+list.save(generated_quantities, "2_data_preparation/generated_quantities.Rdata")
 
