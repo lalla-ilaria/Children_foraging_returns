@@ -30,8 +30,40 @@ census <- read.csv("../data/census_BK_2020.csv")
 
 d_knowledge <- list.load("../data/processed_data.RData")
 
-#create list to store metadata for the manuscript
+
+#########################
+#CALCUCLATE QUANTITIES FOR MANUSCRIPT-----------------------------------------------------------------------------
+##########################create list to store metadata for the manuscript
 generated_quantities <- list()
+
+#n and percentage of hunting trips
+generated_quantities$p_fyuka_trips <- sum(str_detect(d_trips$trip_type, "fyuka"))/nrow(d_trips)
+
+#n households
+hhs <- unique(census$household_2019)
+hhs <- hhs[- which (hhs == "BK144, NY201" |
+                      hhs == "BK109, BK106" |
+                      hhs == "BK134, BK161" |
+                      hhs == "BK121, BK142" |
+                      hhs == "inferred" |
+                      hhs == "out_of_village" |
+                      hhs == "BK144, BK172, BK176" |
+                      hhs == "BK158, BK159" |
+                      hhs == "dead" |
+                      hhs == "REMOVED" |
+                      hhs == "" |
+                      is.na(hhs)
+)]
+generated_quantities$n_households <- length(hhs)
+
+#people in village
+generated_quantities$n_people_bk <- nrow(census) - sum(census$household_2019 %in% c("inferred", "out_of_village", "dead", "REMOVED", ""))
+
+#sample sizes
+generated_quantities$s_size_knowledge <- d_knowledge$N #people in the knowledge sample
+generated_quantities$s_size_height <- sum(!is.na(d_anthropometrics$height)) #people for whom we have height
+generated_quantities$s_size_weight <- sum(!is.na(d_anthropometrics$weight)) #people for whom we have weight
+generated_quantities$s_size_grip <- sum(!is.na(d_anthropometrics$grip)) #people for whom we have grip strength
 
 
 ###########################
@@ -149,6 +181,11 @@ for ( i in 1:nrow(shells)) {
 }
 shells$n_item_types[which(is.na(shells$n_item_types))] <- 0
 
+#shells generated quantities
+
+generated_quantities$n_shell_trips <- length(unique(shells$trip)) #number of shellfish foraging trips 
+generated_quantities$n_shell_trips_person <- nrow(shells) #number of foraging trips/person 
+generated_quantities$n_shell_ppl <- length(unique(shells$who))
 
 ######################
 #CREATE LIST OF TRAPS----------------------------------------------------------------------------------------
@@ -424,6 +461,20 @@ for ( i in 1: length(unique(all_trap_data$trap_ID))){
 }
 dev.off()
 
+
+##########
+#generated quantities
+##########
+
+#n people who participated to trap trips
+generated_quantities$n_trap_trip_participant <- length(d_participants$ID[which(d_participants$trip %in% all_trap_data$trip)])#total trips/participant
+generated_quantities$n_trap_participants <- length(unique(d_participants$ID[which(d_participants$trip %in% all_trap_data$trip )]))#n unique participants
+
+#n trips
+trap_trips <- d_trips$trip[ which (str_detect(d_trips$trip_type, "fyuka"))]
+generated_quantities$n_trap_trips <- length(trap_trips)
+
+
 ######################
 #CREATE DATA FRAMES WITH INFO ABOUT PARTICIPANTS-------------------------------------------------------------
 ######################
@@ -479,6 +530,43 @@ generated_quantities$mean_age_trap <-mean(trap_ppl$age, na.rm = T)
 generated_quantities$min_age_shell <- min(shell_ppl$age, na.rm = T)
 generated_quantities$max_age_shell <- max(shell_ppl$age, na.rm = T)
 generated_quantities$mean_age_shell <-mean(shell_ppl$age, na.rm = T)
+
+
+generated_quantities$n_below19_shell <- sum(shell_ppl$age <=19, na.rm = T)
+generated_quantities$n_above20_shell <- sum(shell_ppl$age >=20, na.rm = T)
+
+#age ranges of people who participated to trap trips
+participants_traps <- data.frame(ID = unique(d_participants$ID[which(d_participants$trip %in% trap_trips)]),
+           age = rep(NA, length( unique(d_participants$ID[which(d_participants$trip %in% trap_trips)]) ))
+)
+for(i in 1:nrow(trap_ppl)){
+  participants_traps$age[i] <- census$age[ which (census$ID == participants_traps$ID[i])]
+}
+
+generated_quantities$min_age_trap_participant <- min(participants_traps$age, na.rm = T)
+generated_quantities$max_age_trap_participant <- max(participants_traps$age, na.rm = T)
+generated_quantities$mean_age_trap_participant <-mean(participants_traps$age, na.rm = T)
+
+
+#group sizes
+#function to get mode of distribution
+getmode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+n_members_shells <- d_participants %>% filter(trip %in% shells$trip) %>% group_by(trip) %>% count()
+generated_quantities$mean_n_participants_shells <- mean(n_members_shells$n)
+generated_quantities$median_n_participants_shells <- median(n_members_shells$n)
+generated_quantities$mode_n_participants_shells <- getmode(n_members_shells$n)
+
+n_members_traps <- d_participants %>% filter(trip %in% trap_trips) %>% group_by(trip) %>% count()
+generated_quantities$mean_n_participants_traps <- mean(n_members_traps$n)
+generated_quantities$median_n_participants_traps <- median(n_members_traps$n)
+generated_quantities$mode_n_participants_traps <- getmode(n_members_traps$n)
+
+
+
 
 #####
 #ADD ANTHROPOMETRICS
@@ -648,8 +736,19 @@ generated_quantities$prop_miss_ppl_ID_traps <- sum(is.na(traps$anonymeID))/nrow(
 generated_quantities$n_traps <- nrow(traps)#n traps
 generated_quantities$n_trap_builders <- length(unique(traps$anonymeID))#n builders
 
+#n traps captured something
+generated_quantities$n_traps_success1 <- length(unique(traps$trap_ID[which(traps$success >= 1)]))#traps that captured
+#total n success
+generated_quantities$n_traps_preys <- sum(traps$success)
+
+
+round(generated_quantities[[2]], digits = 2)
+
+
+#round generated data to two decimal points
 for(i in 1:length(generated_quantities)){
-  generated_quantities[[i]] <- format(round(generated_quantities[[i]], 2), nsmall = 2)
+  generated_quantities[[i]] <- round(generated_quantities[[i]], digits = 2)
+
 }
   
 
