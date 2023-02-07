@@ -6,7 +6,7 @@
 #prepare environment#
 #####################
 
-#setwd to "Children_foraging_returns/"
+#set working directory to "Children_foraging_returns/"
 
 #init project 
 #remove folders and files generated during compilation of the project
@@ -23,6 +23,20 @@ dir.create("plots/validate_model")
 dir.create("3_outcomes/model_fit")
 
 #load packages
+
+usePackage <- function(p) {
+  if (!is.element(p, installed.packages()[,1]))
+    install.packages(p, dep = TRUE)
+  require(p, character.only = TRUE)
+}
+
+usePackage("dagitty")
+usePackage("rlist")
+usePackage("tidyverse")
+usePackage("ggnewscale")
+usePackage("truncnorm")
+usePackage("cowplot")
+
 library(rethinking)
 library(dagitty)
 library(rlist)
@@ -30,7 +44,6 @@ library(tidyverse)
 library(ggnewscale)#for using two scales of color with ggplot
 library(truncnorm)#for truncated normal
 library(cowplot)#for pasting plots together
-library(evoper)#for magnitude
 
 #define colors and other plotting things
 real_data <- list.load("2_data_preparation/processed_data.RData")
@@ -76,8 +89,9 @@ source("2_data_preparation/2_prep_data_functions.R")
 start_time <- Sys.time()
 source("3_analysis/1_analysis.R")
 source("4_outcomes/1_plots.R")
+source("4_outcomes/2_generated_data.R")
 source("4_outcomes/3_supp_info_plots.R")
 end_time <- Sys.time()
-time_1data <- end_time - start_time
-time_1data
+time_2data <- end_time - start_time
+time_2data
 

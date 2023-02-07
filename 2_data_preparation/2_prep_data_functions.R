@@ -1,4 +1,4 @@
-#functions to create data lists
+#functions to create data lists to pass to stancode
 
 #first define average ages for traps and shells cause we're gonna use it elsewhere
 mean_age_shells <- mean(real_data$shell_ppl$age)

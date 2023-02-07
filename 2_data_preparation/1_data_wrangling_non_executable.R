@@ -2,7 +2,7 @@
 #this script wrangles the original data, not available online, and restitutes three files with anonymized, clean data ready for analysis
 #'2_Data_preparation/processed_data.RData' is the main data file for use in the analysis
 #'2_data_preparation/tide_data.csv' is a small dataset used for some additional analyses of tide
-#"2_data_preparation/generated_quantities.csv" contains some measures calculated from raw data that are relevant metadata and might be included in the manuscript
+#"2_data_preparation/generated_quantities.RData" contains some measures calculated from raw data that are relevant metadata and might be included in the manuscript
 
 library(tidyverse)
 library(rethinking)
@@ -762,5 +762,5 @@ rm(list=setdiff(ls(), c("d", "shells", "all_trap_data", "traps", "trap_ppl", "sh
 
 list.save(d, '2_Data_preparation/processed_data.RData')
 write.csv(tide_data, '2_data_preparation/tide_data.csv', row.names = FALSE)
-list.save(generated_quantities, "2_data_preparation/generated_quantities.Rdata")
+list.save(generated_quantities, "2_data_preparation/generated_quantities.RData")
 

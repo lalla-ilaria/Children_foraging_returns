@@ -30,7 +30,7 @@ model{
   gamma ~lognormal(0, 1);
   xi ~ normal(0, 1);
   for ( i in 1:M ) {
-         real lambda =  alpha * exp(phi[ID_i[i]]) * exp(psi[i]);
-         success[i] ~ poisson(lambda); 
+         real poiss_lambda =  alpha * exp(phi[ID_i[i]]) * exp(psi[i]);
+         success[i] ~ poisson(poiss_lambda); 
       }
 }

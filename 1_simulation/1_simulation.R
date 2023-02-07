@@ -11,7 +11,7 @@ sim_data <- function (N , M , Q = 100,   #number of
           add_to_b = 0,
           max_age = age_plot){
   #parameters
-  lambda <-  rexp(1,l)
+  xi <-  rexp(1,l)
   sigma <- rexp(1, 4)
   
   #Simulate individual traits
@@ -56,20 +56,30 @@ sim_data <- function (N , M , Q = 100,   #number of
   }
   #create matrices to save trip effects
   psi <- vector("numeric", length = M) 
-  psi <-    L/mean(L) ^ lambda
+  psi <-    L/mean(L) ^ xi
   ID_ind <- sample (1:N, size = M, replace = T)#assign trip to individual
   
   #calculate per datapoint
-  p <- vector("numeric", length = M) 
+  lambda_pois <- vector("numeric", length = M) 
   S <- vector("numeric", length = M) 
   R <- vector("numeric", length = M) 
+  #generates bernoulli distributed data - as if outcome data for traps were observations of traps
+  # for(i in 1:M){
+  #       if( zero == F) S <- rep(1, M) else {
+  #           p[i] <- 1 - exp ( - abs(alpha_success) * phi[ID_ind[i]] * psi[i] )
+  #           S[i] <- rbern(1, p[i])
+  #           }     
+  #       m <- log(alpha_returns * phi[ID_ind[i]] * psi[i])
+  #       R[i] <- S[i] * rlnorm (1, m, 0.2)
+  # }
+  #generates poisson distributed data - as if outcome data were n of captures per trap (which is actual outcome)
   for(i in 1:M){
-        if( zero == F) S <- rep(1, M) else {
-            p[i] <- 1 - exp ( - abs(alpha_success) * phi[ID_ind[i]] * psi[i] )
-            S[i] <- rbern(1, p[i])
-            }     
-        m <- log(alpha_returns * phi[ID_ind[i]] * psi[i])
-        R[i] <- S[i] * rlnorm (1, m, 0.2)
+    if( zero == F) S <- rep(1, M) else {
+      lambda_pois[i] <-  abs(alpha_success) * phi[ID_ind[i]] * psi[i] 
+      S[i] <- rpois(1, lambda_pois[i])
+    }     
+    m <- log(alpha_returns * phi[ID_ind[i]] * psi[i])
+    R[i] <- S[i] * rlnorm (1, m, 0.2)
   }
   has_knowledge <- rbern(N, 0.8)
   has_height <- rbern(N, 0.8)
