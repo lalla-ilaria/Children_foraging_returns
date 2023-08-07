@@ -37,7 +37,7 @@ png("plots/prior_predictive_simulation.png", height = 3, width = 5, units = "in"
 #plot prior predictive simulation
 par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,1), 
-     xlab = "Age", ylab = "Proportion improvement",
+     xlab = "age", ylab = "proportion improvement",
      xaxt="n")
 axis(1, at=seq(0,3,0.5),labels=seq(0,30,5))
 #calculate per sample
@@ -61,7 +61,7 @@ text(0.4, 0.7,expression(paste(beta,"=3,",gamma,"=1",sep = "")))
 # #plot prior predictive simulation
 #par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,2), 
-     xlab = "Age", ylab = "Proportion improvement",
+     xlab = "age", ylab = "proportion improvement",
      xaxt="n")
 axis(1, at=seq(0,3,0.5),labels=seq(0,30,5))
 #calculate per sample
@@ -202,7 +202,7 @@ v_diffs_phi_prior <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
                                         rep("grip", nrow(diffs_phi)),
                                         rep("height", nrow(diffs_phi))),
                           p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
-                          foraging_type = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
+                          returns = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
 
 
 ###########
@@ -290,7 +290,7 @@ v_diffs_phi <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
                                         rep("grip", nrow(diffs_phi)),
                                         rep("height", nrow(diffs_phi))),
                           p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
-                          foraging_type = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
+                          returns = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
 
 
 
@@ -301,7 +301,7 @@ out_shells <- ggplot(diffs_shells, aes(x = variable, y = kg_shellfish)) +
               colour = "orange") +
   geom_violin(fill = col.alpha(shellcol, 0.4),
               colour = shellcol) +
-  labs(y = "kg shellfish difference", x = "")+
+  labs(y = "kg shellfish", x = "")+
   ylim(-6, 6)+
   theme_classic()
 
@@ -312,22 +312,22 @@ out_traps <- ggplot(diffs_traps, aes(x = variable, y = p_success)) +
               colour = "lawngreen") +
   geom_violin(fill = col.alpha(trapcol, 0.3),
               colour = trapcol) +
-  labs(y = "p_success difference", x = "")+
+  labs(y = "rate success", x = "")+
   ylim(-1, 1)+
   theme_classic()
 
 
-phi_trait_prior <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = foraging_type, color = foraging_type) )+ 
+phi_trait_prior <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = returns, color = returns) )+ 
   geom_hline(yintercept = 0, color = "grey90") +
-  geom_violin(data = v_diffs_phi_prior, aes(x = variable, y = p_success, fill = foraging_type, color = foraging_type), trim=FALSE)+
-  scale_fill_manual("foraging_type",  limits= c("shell", "trap"), values = c(  col.alpha("orange", 0.4), col.alpha("lawngreen", 0.4 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  scale_color_manual("foraging_type",  limits= c("shell", "trap"), values = c("orange", "lawngreen"),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
+  geom_violin(data = v_diffs_phi_prior, aes(x = variable, y = p_success, fill = returns, color = returns), trim=FALSE)+
+  scale_fill_manual("returns",  limits= c("shell", "trap"), values = c(  col.alpha("orange", 0.4), col.alpha("lawngreen", 0.4 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
+  scale_color_manual("returns",  limits= c("shell", "trap"), values = c("orange", "lawngreen"),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
   new_scale_fill()+
   new_scale_color()+
-  geom_violin(data = v_diffs_phi, aes(x = variable, y = p_success, fill = foraging_type, color = foraging_type), trim=FALSE)+
-  scale_fill_manual("foraging_type",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.4), col.alpha(trapcol, 0.4 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  scale_color_manual("foraging_type",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  labs(x = "", y = "phi difference")+
+  geom_violin(data = v_diffs_phi, aes(x = variable, y = p_success, fill = returns, color = returns), trim=FALSE)+
+  scale_fill_manual("returns",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.4), col.alpha(trapcol, 0.4 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
+  scale_color_manual("returns",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
+  labs(x = "", y = "\u03C6")+
   ylim(-10, 10)+
   theme_classic()+
   theme(legend.position="top")
@@ -360,9 +360,9 @@ phi <-  mean(post_t$iota) +
 psi <-  mean(post_t$xi) * (mean(log (dat_traps$duration))) 
 lambda <- mean(post_t$alpha) * exp(phi) * exp(psi)
 samp_data <- rpois(length(seq_trait),  lambda)
-plot(jitter(seq_trait) * mean_age_traps, samp_data, 
-     xlab = "Age", ylab = "n captures",
-     xlim = c(0,age_plot), ylim = c(-0.1, 3.1), 
+plot(jitter(seq_trait) * mean_age_traps, samp_data - 0.1, 
+     xlab = "age", ylab = "n captures",
+     xlim = c(0,age_plot), ylim = c(-0.2, 3.1), 
      pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
 #with average actor and average time 
 for(i in 1:150){
@@ -370,15 +370,39 @@ for(i in 1:150){
           post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait))
   psi <-  post_t$xi[i] * mean(log(dat_traps$duration))
   lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
-  lines( seq_trait * mean_age_traps,  lambda + 0.1,
+  lines( seq_trait * mean_age_traps,  lambda ,
       col = col.alpha(trapcol, 0.2), lwd = 1)
 }
 points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
-       jitter(dat_traps$success, amount = 0.1), 
+       jitter(dat_traps$success, amount = 0.1) -0.1, 
        pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
        col = col.alpha(othercol, ifelse(dat_traps$success >= 1, 0.7, 0.4)))
 
 dev.off()
+
+
+
+##########################################################################
+#KNOWLEDGE -TIDE 
+##########################################################################
+#load data
+dat_shells <- make_list_data_all(foraging_type = "shells")
+dat_traps <- make_list_data_all(foraging_type = "traps")
+
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_all.rda")
+load(file = "4_outcomes/model_fit/post_t_all.rda")
+
+png("plots/knowledge_and_tide.png", height = 4, width = 4, units = "in", res = 500, type="cairo")
+#plot(jitter(dat_shells$age[dat_shells_all$ID_i]) , dat_shells$tide, pch = 16, col = "#1482ac", xlab = "age", ylab = "minimum tide level")
+plot(apply(post_s$knowledge, 2, mean)[dat_shells_all$ID_i] , dat_shells$tide, pch = 16, col = "#1482ac", xlab = "estimated knowledge", ylab = "minimum tide level")
+dev.off()
+
+png("plots/knowledge_and_duration.png", height = 4, width = 4, units = "in", res = 500, type="cairo")
+#plot(jitter(dat_shells$age[dat_shells_all$ID_i]) , dat_shells$tide, pch = 16, col = "#1482ac", xlab = "age", ylab = "minimum tide level")
+plot(apply(post_t$knowledge, 2, mean)[dat_traps_all$ID_i] , dat_traps$duration, pch = 16, col = "#1482ac", xlab = "estimated knowledge", ylab = "minimum tide level")
+dev.off()
+
 
 ##########################################################################
 #AGE ONLY -TIDE MODEL
@@ -393,12 +417,14 @@ post_tide <- extract.samples (m_tide)
 
 dat_tides$age <- dat_tides$age * mean_age_shells
 
-png("plots/age_and_tide.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
-plot(jitter(dat_tides$age, 2) , dat_tides$tide, pch = 16, col = "#1482ac")
+png("plots/age_and_tide.png", height = 4, width = 4, units = "in", res = 500, type="cairo")
+plot(jitter(dat_tides$age, 2) , dat_tides$tide, pch = 16, col = "#1482ac", xlab = "age", ylab = "minimum tide level")
 for ( i in 1:250) lines( seq(0,4, 0.1) * mean_age_shells, 
                          post_tide$alpha[i] + post_tide$beta[i] * seq(0,4, 0.1),
                          col = col.alpha("#1482ac", 0.3))
 dev.off()
+
+
 ##################################################
 #N ITEMS
 ##################################################
@@ -409,11 +435,11 @@ dat_tides$age <- dat_tides$age[dat_tides$ID_i]
 dat_tides$age <- dat_tides$age * mean_age_shells
 dat_tides$n_item_types <- real_data$shells$n_item_types
 
-png("plots/n_items_age.png", height = 3, width = 4, units = "in", res = 500, type="cairo")
+png("plots/n_items_age.png", height = 4, width = 4, units = "in", res = 500, type="cairo")
 plot(dat_tides$age[which(dat_tides$n_item_types > 0)] , 
      dat_tides$n_item_types[which(dat_tides$n_item_types > 0)],
      xlim = c(5,age_plot ), ylim = c(0, 10),
-     xlab = "Age", ylab = "n types of shellfish",
+     xlab = "age", ylab = "n types of shellfish",
      pch = 16, col = "#1482ac"  )
 dev.off()
 
@@ -435,17 +461,17 @@ load(file = "4_outcomes/model_fit/post_t_all.rda")
 sex_col <- ifelse(dat_shells$sex == "1", boycol, girlcol)
 presence_col <- ifelse(dat_shells$has_knowledge == "1", shellcol, "deepskyblue4")
 png("plots/missing_data_validation_shells.png", height = 5, width = 8, units = "in", res = 500, type="cairo")
-par(mfrow = c(1,3),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+par(mfrow = c(1,3),mgp = c(2, 0.5, 0), mar = c(3.2, 3.4, 0.8, 0.2) + 0.1)
 plot(x = dat_shells$age * mean_age_shells, 
      y = apply(post_s$height_merged, 2, mean), 
      xlim = c(0,age_plot),
-     xlab = "Age" , 
-     ylab = "Height",
+     xlab = "age" , 
+     ylab = "height",
      cex.lab=1.8 , 
      cex.axis=1.8 ,
      pch = ifelse(dat_shells$has_height == 1, 19, 1) , 
      cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
+     col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait  * mean_age_shells,  
         y = dat_shells$min_height + post_s$kappa[i,1] * ( 1 - exp(-post_s$chi[i,1] * seq_trait)) ,  
@@ -460,13 +486,13 @@ for (i in 1:100) {
 plot(x = dat_shells$age  * mean_age_shells, 
      y = apply(post_s$grip_merged, 2, mean), 
      xlim = c(0,age_plot),
-     xlab = "Age" , 
-     ylab = "Grip",
+     xlab = "age" , 
+     ylab = "grip",
      cex.lab=1.8 , 
      cex.axis=1.8 ,
      pch = ifelse(dat_shells$has_grip == 1, 19, 1) , 
      cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
+     col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait* mean_age_shells,  
         y = post_s$epsilon[i,1] * ( 1 - exp(-post_s$upsilon[i,1] * seq_trait)) ,  
@@ -481,13 +507,13 @@ for (i in 1:100) {
 plot(x = dat_shells$age * mean_age_shells, 
      y = apply(post_s$knowledge, 2, median), 
      xlim = c(0,age_plot),
-     xlab = "Age" , 
-     ylab = "Estimated knowledge",
+     xlab = "age" , 
+     ylab = "estimated knowledge",
      cex.lab=1.8 , 
      cex.axis=1.8 ,
      pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
      cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
+     col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_shells,  
         y = post_s$omega[i] + post_s$omicron[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * seq_trait)) ,  
@@ -507,17 +533,17 @@ sex_col <- ifelse(dat_traps$sex == "1", boycol, girlcol)
 presence_col <- ifelse(dat_traps$has_knowledge == "1", "deepskyblue4", "darkorange3")
 
 png("plots/missing_data_validation_traps.png", height = 5, width = 8, units = "in", res = 500, type="cairo")
-par(mfrow = c(1,3),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+par(mfrow = c(1,3),mgp = c(2, 0.5, 0), mar = c(3.2, 3.4, 0.8, 0.2) + 0.1)
 plot(x = dat_traps$age * mean_age_traps, 
      y = apply(post_t$height_merged, 2, mean), 
      xlim = c(0,age_plot),
-     xlab = "Age" , 
-     ylab = "Height",
+     xlab = "age" , 
+     ylab = "height",
      cex.lab=1.8 , 
      cex.axis=1.8 ,
      pch = ifelse(dat_traps$has_height == 1, 19, 1) , 
      cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
+     col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,  
         y = dat_traps$min_height + post_t$kappa[i,1] * ( 1 - exp(-post_t$chi[i,1] * seq_trait)) ,  
@@ -532,13 +558,13 @@ for (i in 1:100) {
 plot(x = dat_traps$age * mean_age_traps, 
      y = apply(post_t$grip_merged, 2, mean), 
      xlim = c(0,age_plot),
-     xlab = "Age" , 
+     xlab = "age" , 
      ylab = "grip",
      cex.lab=1.8 , 
      cex.axis=1.8 ,
      pch = ifelse(dat_traps$has_grip == 1, 19, 1) , 
      cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
+     col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,  
         y = post_t$epsilon[i,1] * ( 1 - exp(-post_t$upsilon[i,1] * seq_trait)) ,  
@@ -553,13 +579,13 @@ for (i in 1:100) {
 plot(x = dat_traps$age * mean_age_traps,
      y = apply(post_t$knowledge, 2, median), 
      xlim = c(0,age_plot),
-     xlab = "Age" , 
-     ylab = "",
+     xlab = "age" , 
+     ylab = "estimated knowledge",
      cex.lab=1.8 , 
      cex.axis=1.8 ,
      pch = ifelse(dat_traps$has_knowledge == 1, 19, 1) , 
      cex = 1.5, 
-     col =  alpha( sex_col , 0.6 )  )
+     col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,
         y = post_t$omega[i] + post_t$omicron[i,1] * ( 1 - exp(-post_t$ro_age[i,1] * seq_trait)) ,  
@@ -608,8 +634,10 @@ dev.off()
 png("plots/tide_height&avg.png", height = 10, width = 12, units = "cm", res = 500, type="cairo")
   tide_plot <- ggplot(tide_data, aes(x = tide_height, y = avg_tide_depth, col = trip_length)) +
     geom_point( )+
-    labs(x = "max tide height", y = "average tide height", col = "Duration (min)")+
+    labs(x = "max tide height", y = "average tide height", col = "duration (min)")+
     theme_classic()
   print(tide_plot)
 dev.off()
+
+
 

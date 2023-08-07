@@ -134,7 +134,7 @@ m_shells_all <- cstan( file= "models/2_shells_all.stan" , data=dat_shells ,
                        chains=3, cores = 3, iter = 400 )
 
 
-d <- sim_data(30, 1000, zero = T, 
+d <- sim_data(30, 500, zero = T, 
               g_g = 2, g_h = 2, g_k = 2,
               alpha_success = 0.02)#all parameters are 0.3
 
@@ -416,9 +416,9 @@ for ( j in 1:nrow(pars)){
                          chains=3, cores = 3, iter = 400 )
   
   
-  d <- sim_data(30, 1000, zero = T, 
+  d <- sim_data(30, 500, zero = T, 
                 g_g = pars[j,"g_g"], g_h = pars[j,"g_h"], g_k = pars[j,"g_k"],
-                alpha_success = 0.2)
+                alpha_success = 0.8)
   
   #TRAPS
   dat_traps <- list(

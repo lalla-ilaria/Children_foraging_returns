@@ -23,7 +23,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
   
   plot(jitter(seq_trait) * mean_age_shells, samp_data, 
        xlim = c(0,age_plot), ylim = c(0, max(dat_shells$returns)+1), 
-       xlab = "Age", ylab = "kg shellfish",
+       xlab = "age", ylab = "kg shellfish",
        pch = 16, col = col.alpha("orange", 0.6))
   for(i in 1:150){
     phi <-  apply(post_s$iota,1,mean )[i] +
@@ -50,9 +50,9 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
   samp_data <- rpois(length(seq_trait),  lambda)
   
   #NB making plot with 13212 only (one of best hunters) to make plot with optimal situation to raise curve off zero
-  plot(jitter(seq_trait) * mean_age_traps, samp_data, 
-       xlab = "Age", ylab = "n captures",
-       xlim = c(0,age_plot), ylim = c(-0.1, 3.1), 
+  plot(jitter(seq_trait) * mean_age_traps, samp_data -0.1, 
+       xlab = "age", ylab = "n captures",
+       xlim = c(0,age_plot), ylim = c(-0.2, 3.1), 
        pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
   #with ideal conditions (best actor, longest time)
   for(i in 1:150){
@@ -62,7 +62,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
     #p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
     #lines( seq_trait * mean_age_traps,  p, 
     lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
-    lines( seq_trait * mean_age_traps,  lambda + 0.1, 
+    lines( seq_trait * mean_age_traps,  lambda , 
       col = col.alpha(trapcol, 0.2), lwd = 1)
   }
   #with average actor and average time 
@@ -75,7 +75,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
   #       col = col.alpha(trapcol, 0.2), lwd = 1)
   # }
   points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
-         jitter(dat_traps$success, amount = 0.1), 
+         jitter(dat_traps$success, amount = 0.1) - 0.1, 
     pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
     col = col.alpha(othercol, ifelse(dat_traps$success >= 1, 0.7, 0.4)))
   text(1, 2.95, "B")
@@ -84,7 +84,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
 #age variation
 #######################################
   plot(NULL, xlim = c(0,age_plot), ylim = c(0,1), 
-       xlab = "Age", ylab = "proportion max foraging")#, main = "Age only"
+       xlab = "age", ylab = "proportion max foraging")#, main = "Age only"
   phi <- exp(median(post_s$gamma) * log(1-exp(-median(post_s$beta) * seq_trait  ))) 
   lines( seq_trait * mean_age_shells,  phi, col = col.alpha(shellcol, 1), lwd = 2)
   mu_phi <-   sapply ( seq_trait , function (x) PI (exp(post_s$gamma * log(1-exp(-post_s$beta * x ))), 0.95) )
@@ -101,7 +101,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
   
   
   plot(NULL, xlim = c(0,age_plot), ylim = c(0,1), 
-       xlab = "Age", ylab = "proportion max foraging")#, main = "Age only"
+       xlab = "age", ylab = "proportion max foraging")#, main = "Age only"
   phi <-  exp(median(post_t$gamma) * log(1-exp(-median(post_t$beta) * seq_trait  ))) 
   lines( seq_trait * mean_age_traps,  phi, col = col.alpha(trapcol, 1), lwd = 2)
   mu_phi <-   sapply ( seq_trait , function (x) PI (exp(post_t$gamma * log(1-exp(-post_t$beta * x ))), 0.95) )
@@ -172,8 +172,8 @@ diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
                     kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
 )
 
-diffs_shells <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+diffs_shells <- diffs #%>% 
+#  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
 
 
 for (i in 1:4) {
@@ -206,14 +206,14 @@ diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
                     p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
 )
 
-diffs_traps <- diffs %>% 
-  mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
+diffs_traps <- diffs #%>% 
+#  mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
 
 out_shells_max <- ggplot(diffs_shells, aes(x = variable, y = kg_shellfish)) + 
   geom_hline(yintercept = 0, color = "grey90") +
   geom_violin(fill = col.alpha(shellcol, 0.6),
               colour = shellcol) +
-  labs(y = "kg shellfish difference", x = "")+
+  labs(y = "kg shellfish", x = "")+
   ylim(-max(dat_shells$returns), max(dat_shells$returns))+
   theme_classic()
 
@@ -221,7 +221,7 @@ out_traps_max <- ggplot(diffs_traps, aes(x = variable, y = p_success)) +
   geom_hline(yintercept = 0, color = "grey90") +
   geom_violin(fill = col.alpha(trapcol, 0.6),
               colour = trapcol) +
-  labs(y = "p_success difference", x = "")+
+  labs(y = "rate success", x = "")+
   ylim(-1, 1)+
   theme_classic()
 
@@ -232,15 +232,15 @@ v_diffs_phi <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
                                         rep("grip", nrow(diffs_phi)),
                                         rep("height", nrow(diffs_phi))),
                           p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
-                          foraging_type = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
+                          returns = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
 
 
-phi_trait_max <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = foraging_type , color = foraging_type) )+ 
+phi_trait_max <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = returns , color = returns) )+ 
   geom_hline(yintercept = 0, color = "grey90") +
   geom_violin(trim=FALSE)+
-  scale_fill_manual("foraging_type",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.6), col.alpha(trapcol, 0.6 )),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  scale_color_manual("foraging_type",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined. Add "inland", and "#FFFFFF", for marine resorurces
-  labs(x = "", y = "phi difference")+
+  scale_fill_manual("returns",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.6), col.alpha(trapcol, 0.6 )),guide = guide_legend())+ #gives colors as defined. 
+  scale_color_manual("returns",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined.
+  labs(x = "", y = "\u03C6")+
   ylim(-10, 10)+
   theme_classic()+
   theme(legend.position="top")
