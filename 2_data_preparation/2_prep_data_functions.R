@@ -130,7 +130,7 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
       }
       #sort knowledge data
-      d_shell_k <- d_shell_k[ order(row.names(d_shell_k)), ]
+      for (i in 1:3) d_shell_k[[i]] <-  d_shell_k[[i]][ order(row.names(d_shell_k[[i]])), ]
       
       #TRAPS
       d_trapppl <- data$trap_ppl
@@ -147,7 +147,7 @@ make_list_data_all <- function(data = real_data, foraging_type ){
       }
       
       #sort knowledge data
-      d_trap_k <- d_trap_k[ order(row.names(d_trap_k)), ]
+      for (i in 1:3) d_trap_k[[i]] <-  d_trap_k[[i]][ order(row.names(d_trap_k[[i]])), ]
       
       #ALL TRAPS
       d_all_trapppl <- data$trap_ppl
@@ -166,7 +166,7 @@ make_list_data_all <- function(data = real_data, foraging_type ){
       d_all_traps <- d_all_traps[which(d_all_traps$lenght_hour >= 1), ]
       
       #sort knowledge data
-      d_all_trap_k <- d_all_trap_k[ order(row.names(d_all_trap_k)), ]
+      d_all_trap_k <- for (i in 1:3) d_trap_k[[i]][ order(row.names(d_trap_k[[i]])), ]
       
       #SHELLS
       dat_shells_all <- list(
@@ -189,8 +189,12 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         #knowledge data
         has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
         knowledge_nit = d_shellppl$knowledge/mean(d_shellppl$knowledge, na.rm = TRUE),
-        Q = ncol(d_shell_k),                        #n items in freelist
-        answers = d_shell_k                         #all answers from freelist
+        F_n = ncol(d_shell_k[[1]]),                        #n items in freelist
+        Q_n = ncol(d_shell_k[[2]]),                        #n items in questionnaire
+        R_n = ncol(d_shell_k[[3]]),                        #n items in image recognition
+        answers_f = d_shell_k[[1]],                         #all answers from freelist
+        answers_q = d_shell_k[[2]],                         #all answers from freelist
+        answers_r = d_shell_k[[3]]                         #all answers from freelist
       )
       
       #TRAPS
@@ -214,8 +218,12 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         #knowledge data
         has_knowledge = ifelse(is.na(d_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
         knowledge_nit = d_trapppl$knowledge/mean(d_trapppl$knowledge, na.rm = TRUE),
-        Q = ncol(d_trap_k),                        #n items in freelist
-        answers = d_trap_k                       #all answers from freelist
+        F_n = ncol(d_trap_k[[1]]),                        #n items in freelist
+        Q_n = ncol(d_trap_k[[2]]),                        #n items in questionnaire
+        R_n = ncol(d_trap_k[[3]]),                        #n items in image recognition
+        answers_f = d_trap_k[[1]],                         #all answers from freelist
+        answers_q = d_trap_k[[2]],                         #all answers from freelist
+        answers_r = d_trap_k[[3]]                         #all answers from freelist
       )
       
       #ALL TRAPS
@@ -239,8 +247,12 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         #knowledge data
         has_knowledge = ifelse(is.na(d_all_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
         knowledge_nit = d_all_trapppl$knowledge/mean(d_all_trapppl$knowledge, na.rm = TRUE),
-        Q = ncol(d_all_trap_k),                        #n items in freelist
-        answers = d_all_trap_k                       #all answers from freelist
+        F_n = ncol(d_trap_k[[1]]),                        #n items in freelist
+        Q_n = ncol(d_trap_k[[2]]),                        #n items in questionnaire
+        R_n = ncol(d_trap_k[[3]]),                        #n items in image recognition
+        answers_f = d_trap_k[[1]],                         #all answers from freelist
+        answers_q = d_trap_k[[2]],                         #all answers from freelist
+        answers_r = d_trap_k[[3]]                         #all answers from freelist
       )
       
       #return either type of data  
@@ -256,3 +268,166 @@ make_list_data_all <- function(data = real_data, foraging_type ){
     }
   }
 }
+
+##########################################################################
+#PREPARE DATA - COMPLETE CASES ONLY
+##########################################################################
+#prepares lists to be passed to stan models. Can prepare either shell, trap, or all_trap data for respectively
+make_list_data_complete_cases <- function(data = real_data, foraging_type ){
+  #SHELLS
+  d_shellppl <- data$shell_ppl
+  d_shells <- data$shells
+  d_shell_k <- data$shell_k
+  
+  #keep only foraging data
+  d_shellppl <- d_shellppl %>% filter(data == "shells")
+  d_shellppl <- d_shellppl[complete.cases(d_shellppl),]
+  
+  #add index variables
+  #index and sort all individuals so we can loop across them
+  d_shellppl$index_id <- as.integer(as.factor(d_shellppl$anonymeID))
+  d_shellppl <- d_shellppl[order(d_shellppl$index_id),]
+  #add index for individuals in the foraging data
+  d_shells <- d_shells[ which(d_shells$anonymeID %in% d_shellppl$anonymeID), ]
+  for ( i in 1:nrow(d_shells)){
+    d_shells$index_id[i] <- d_shellppl$index_id[which ( d_shellppl$anonymeID == d_shells$anonymeID[i])]
+  }
+  
+  #filter and sort knowledge data
+  for (i in 1:3) d_shell_k[[i]] <-  d_shell_k[[i]][ which(rownames(d_shell_k[[i]]) %in% d_shellppl$anonymeID), ]
+  for (i in 1:3) d_shell_k[[i]] <-  d_shell_k[[i]][ order(row.names(d_shell_k[[i]])), ]
+  
+  #TRAPS
+  d_trapppl <- data$trap_ppl
+  d_traps <- data$traps
+  d_traps <- data$traps %>% filter(exposure > 0)
+  d_trap_k <- data$trap_k
+  
+  #keep only foraging data
+  d_trapppl <- d_trapppl %>% filter(data == "traps")
+  d_trapppl <- d_trapppl[complete.cases(d_trapppl),]
+  
+  #add index variables
+  #index and sort all individuals so we can loop across them
+  d_trapppl$index_id <- as.integer(as.factor(d_trapppl$anonymeID))
+  d_trapppl <- d_trapppl[order(d_trapppl$index_id),]
+  d_traps <- d_traps[ which(d_traps$anonymeID %in% d_trapppl$anonymeID), ]
+  for ( i in 1:nrow(d_traps)){
+    d_traps$index_id[i] <- d_trapppl$index_id[which ( d_trapppl$anonymeID == d_traps$anonymeID[i])]
+  }
+  
+  for (i in 1:3) d_trap_k[[i]] <-  d_trap_k[[i]][ which(rownames(d_trap_k[[i]]) %in% d_trapppl$anonymeID), ]
+  for (i in 1:3) d_trap_k[[i]] <-  d_trap_k[[i]][ order(row.names(d_trap_k[[i]])), ]
+  
+  
+  #index id of best actor
+  best_guy <- d_trapppl$index_id[which(d_trapppl$anonymeID == 13212)]
+  
+  
+  #ALL TRAPS
+  d_all_trapppl <- data$trap_ppl
+  d_all_traps <- data$all_traps
+  d_all_trap_k <- data$trap_k
+  
+  #keep only foraging data
+  d_all_trapppl <- d_all_trapppl %>% filter(data == "traps")
+  d_all_trapppl <- d_all_trapppl[complete.cases(d_all_trapppl),]
+  d_all_traps <- d_all_traps[which(d_all_traps$lenght_hour >= 1), ]
+  
+  #add index variables
+  #index and sort all individuals so we can loop across them
+  d_all_trapppl$index_id <- as.integer(as.factor(d_all_trapppl$anonymeID))
+  d_all_trapppl <- d_all_trapppl[order(d_all_trapppl$index_id),]
+  d_all_traps <- d_all_traps[ which(d_all_traps$anonymeID %in% d_all_trapppl$anonymeID), ]
+  for ( i in 1:nrow(d_all_traps)){
+    d_all_traps$index_id[i] <- d_all_trapppl$index_id[which ( d_all_trapppl$anonymeID == d_all_traps$anonymeID[i])]
+  }
+  
+  for (i in 1:3) d_trap_k[[i]] <-  d_trap_k[[i]][ which(rownames(d_trap_k[[i]]) %in% d_trapppl$anonymeID), ]
+  for (i in 1:3) d_trap_k[[i]] <-  d_trap_k[[i]][ order(row.names(d_trap_k[[i]])), ]
+  
+  #index id of best actor
+  best_all_trap_guy <- d_all_trapppl$index_id[which(d_all_trapppl$anonymeID == 13212)]
+  
+  
+  dat_shells_cc <- list(
+    N = nrow(d_shellppl),
+    M = nrow(d_shells),
+    age = d_shellppl$age / mean(data$shell_ppl$age),
+    returns = as.numeric(d_shells$returns)/1000,
+    duration = d_shells$lenght_min/mean(d_shells$lenght_min),
+    tide = d_shells$tide_avg_depth,
+    ID_i= d_shells$index_id,
+    height = d_shellppl$height/mean(d_shellppl$height, na.rm = TRUE),
+    min_height = 50/mean(d_shellppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
+    #grip data
+    grip = d_shellppl$grip/mean(d_shellppl$grip, na.rm = TRUE),
+    #knowledge data
+    knowledge_nit = d_shellppl$knowledge/mean(d_shellppl$knowledge, na.rm = TRUE),
+    F_n = ncol(d_shell_k[[1]]),                        #n items in freelist
+    Q_n = ncol(d_shell_k[[2]]),                        #n items in questionnaire
+    R_n = ncol(d_shell_k[[3]]),                        #n items in image recognition
+    answers_f = d_shell_k[[1]],                         #all answers from freelist
+    answers_q = d_shell_k[[2]],                         #all answers from freelist
+    answers_r = d_shell_k[[3]]                         #all answers from freelist
+  )
+  
+  
+  dat_traps_cc <- list(
+    N = nrow(d_trapppl),                       #n individuals in total sample
+    M = nrow(d_traps),                         #n trip/person
+    ID_i= d_traps$index_id,                    #index of person of trip 
+    success = d_traps$success,                 #whether trap captured something
+    age = d_trapppl$age / mean(data$trap_ppl$age),
+    duration = d_traps$exposure/mean(d_traps$exposure),
+    best_guy = best_guy,
+    height = d_trapppl$height/mean(d_trapppl$height, na.rm = TRUE),
+    min_height = 50/mean(d_trapppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
+    #grip data
+    grip = d_trapppl$grip/mean(d_trapppl$grip, na.rm = TRUE),
+    #knowledge data
+    knowledge_nit = d_trapppl$knowledge/mean(d_trapppl$knowledge, na.rm = TRUE),
+    F_n = ncol(d_trap_k[[1]]),                        #n items in freelist
+    Q_n = ncol(d_trap_k[[2]]),                        #n items in questionnaire
+    R_n = ncol(d_trap_k[[3]]),                        #n items in image recognition
+    answers_f = d_trap_k[[1]],                         #all answers from freelist
+    answers_q = d_trap_k[[2]],                         #all answers from freelist
+    answers_r = d_trap_k[[3]]                         #all answers from freelist
+  )
+  
+  dat_all_traps_cc <- list(
+    N = nrow(d_all_trapppl),                       #n individuals in total sample
+    M = nrow(d_all_traps),                         #n trip/person
+    ID_i= d_all_traps$index_id,                    #index of person of trip 
+    success = d_all_traps$success,                 #whether trap captured something
+    age = d_all_trapppl$age / mean(data$trap_ppl$age),
+    duration = d_all_traps$lenght_hour/mean(d_all_traps$lenght_hour),
+    best_all_trap_guy = best_all_trap_guy,
+    height = d_all_trapppl$height/mean(d_all_trapppl$height, na.rm = TRUE),
+    min_height = 50/mean(d_all_trapppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
+    #grip data
+    grip = d_all_trapppl$grip/mean(d_all_trapppl$grip, na.rm = TRUE),
+    #knowledge data
+    knowledge_nit = d_all_trapppl$knowledge/mean(d_all_trapppl$knowledge, na.rm = TRUE),
+    F_n = ncol(d_trap_k[[1]]),                        #n items in freelist
+    Q_n = ncol(d_trap_k[[2]]),                        #n items in questionnaire
+    R_n = ncol(d_trap_k[[3]]),                        #n items in image recognition
+    answers_f = d_trap_k[[1]],                         #all answers from freelist
+    answers_q = d_trap_k[[2]],                         #all answers from freelist
+    answers_r = d_trap_k[[3]]                         #all answers from freelist
+  )
+  
+  #return either type of data  
+  if(foraging_type == "shells"){
+    return(dat_shells_cc)
+  }else{
+    if(foraging_type == "traps"){
+      return(dat_traps_cc)
+    } else{
+      if(foraging_type == "all_traps"){
+        return(dat_all_traps_cc)
+      }
+    }
+  }
+}
+

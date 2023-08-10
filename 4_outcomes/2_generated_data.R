@@ -2,25 +2,46 @@
 #load already generated quantities
 generated_quantities <- list.load("2_data_preparation/generated_quantities.RData")
 
+
+########################
+#Proportion missing data
+########################
+
+shell_ppl <- real_data$shell_ppl[real_data$shell_ppl$anonymeID %in% real_data$shells$anonymeID,]
+trap_ppl <- real_data$trap_ppl[real_data$trap_ppl$anonymeID %in% real_data$traps$anonymeID,]
+
+nrow(shell_ppl)
+sum(is.na(shell_ppl$height))
+sum(is.na(shell_ppl$grip))
+sum(is.na(shell_ppl$knowledge))
+
+nrow(trap_ppl)
+sum(is.na(trap_ppl$height))
+sum(is.na(trap_ppl$grip))
+sum(is.na(trap_ppl$knowledge))
+
+
 #########################
 #AGE ONLY
 #########################
 dat_shells <- make_list_data_age(foraging_type = "shells")
 dat_traps <- make_list_data_age(foraging_type = "traps")
 
-load(file = "4_outcomes/model_fit/post_s_age.rda")
-load(file = "4_outcomes/model_fit/post_t_age.rda")
+post_s <- extract.samples(m_shell_age)
+post_t <- extract.samples(m_trap_age)
 
 #generated data
 
 #proportion max foraging by age 10
-generated_quantities$shell_median_foraging_by10 <- (1-exp(-median(post_s$beta) * 10/mean_age_shells  )) ^ median(post_s$gamma)
-generated_quantities$shell_5PI_foraging_by10 <-  PI((1-exp(-post_s$beta * 10/mean_age_shells  )) ^ post_s$gamma)[1]
-generated_quantities$shell_94PI_foraging_by10 <-  PI((1-exp(-post_s$beta * 10/mean_age_shells  )) ^ post_s$gamma)[2]
+p_max_for_10 <- matrix(NA, 
+                       nrow = 3, ncol = 2, 
+                       dimnames = list(c("median", "5%PI", "94%PI"), 
+                                       c("shells","traps")))
+p_max_for_10[1,1] <- median((1-exp(-post_s$beta * 10/mean_age_shells  )) ^ median(post_s$gamma))
+p_max_for_10[2:3,1] <- PI(((1-exp(-post_s$beta * 10/mean_age_shells  )) ^ post_s$gamma))
 
-generated_quantities$trap_median_foraging_by10 <- (1-exp(-median(post_t$beta) * 10/mean_age_traps  )) ^ median(post_t$gamma)
-generated_quantities$trap_5PI_foraging_by10 <-  PI((1-exp(-post_t$beta * 10/mean_age_traps  )) ^ post_t$gamma)[1]
-generated_quantities$trap_94PI_foraging_by10 <-  PI((1-exp(-post_t$beta * 10/mean_age_traps  )) ^ post_t$gamma)[2]
+p_max_for_10[1,2] <- (1-exp(-median(post_t$beta) * 10/mean_age_traps  )) ^ median(post_t$gamma)
+p_max_for_10[2:3,2] <- PI((1-exp(-post_t$beta * 10/mean_age_traps  )) ^ PI(post_t$gamma))
 #WHY MEDIAN IS NOT BETWEEN PI????
 
 
@@ -32,21 +53,22 @@ generated_quantities$trap_94PI_foraging_by10 <-  PI((1-exp(-post_t$beta * 10/mea
 dat_shells <- make_list_data_all(foraging_type = "shells")
 
 dat_tides <- dat_shells [ c("M", "ID_i", "tide", "age", "sex")]
-dat_tides$age <- dat_tides$age[dat_tides$ID_i]
-dat_tides$sex <- dat_tides$sex[dat_tides$ID_i]
+dat_tides$age <- d_tides$age[d_tides$ID_i]
+dat_tides$sex <- d_tides$sex[d_tides$ID_i]
 dat_tides$age <- dat_tides$age * mean_age_shells
 
 dat_tides <- as.data.frame(dat_tides)
-generated_quantities$mean_tide_above20 <- dat_tides %>% filter(age >=20 ) %>% summarize( Mean = mean(tide)) %>% unlist(use.names = FALSE) 
-generated_quantities$mean_tide_below19 <- dat_tides %>% filter(age <=19 ) %>% summarize( Mean = mean(tide)) %>% unlist(use.names = FALSE)
+dat_tides <- dat_tides [-which(dat_tides$age >=15 & dat_tides$sex == "m"),]
+dat_tides %>% filter(age >=20 ) %>% summarize( Mean = mean(tide))
+dat_tides %>% filter(age <=19 ) %>% summarize( Mean = mean(tide))
 
-generated_quantities$mean_age_tide_above0 <- dat_tides %>% filter(tide >0 ) %>% summarize( Mean = mean(age)) %>% unlist(use.names = FALSE)
-generated_quantities$mean_age_tide_below0 <- dat_tides %>% filter(tide <=0 ) %>% summarize( Mean = mean(age))%>% unlist(use.names = FALSE)
+dat_tides %>% filter(tide >0 ) %>% summarize( Mean = mean(age))
+dat_tides %>% filter(tide <=0 ) %>% summarize( Mean = mean(age))
 
 ###############
 #shells calculation
 dat_shells <- make_list_data_all(foraging_type = "shells")
-load(file = "4_outcomes/model_fit/post_s_all.rda")
+post_s <- extract.samples(m_shells_all)
 
 phi <-  apply(post_s$iota,1,mean )  +
   post_s$gamma * log(1-exp(- post_s$beta * 1.23  )) +
@@ -56,13 +78,13 @@ phi <-  apply(post_s$iota,1,mean )  +
 psi <-  post_s$xi * mean(log(180/mean(real_data$shells$lenght_min))) +
   post_s$tau* 0
 kg_shells <- exp (log(post_s$alpha) + phi_min + psi +
-                (post_s$sigma^2 /2))
-generated_quantities$mean_kg_shells <- mean(kg_shells)
-generated_quantities$PI5_kg_shells <- PI(kg_shells)[1]
-generated_quantities$PI5_kg_shells <- PI(kg_shells)[2]
+                    (post_s$sigma^2 /2))
+mean(kg_shells)
+PI(kg_shells)
 
 ##########
 #SAVE DATA
 ##########
+generated_data <- list(p_max_for_10 = p_max_for_10)
 
-list.save(generated_quantities, "4_outcomes/generated_data.RData")
+list.save(generated_data, "4_outcomes/generated_data.Rdata")
