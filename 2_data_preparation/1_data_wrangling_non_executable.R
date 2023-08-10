@@ -11,6 +11,14 @@ library(rlist)
 #########################
 #LOAD FUNCTIONS AND DATA---------------------------------------------------------------------------------------------
 #########################
+anonyme <- function( df_column) {
+  anonyme_id <- vector( length = length(df_column) )
+  for(i in 1:length(df_column)){
+    anonyme_id[i] <- paste( which(letters == tolower(substring(df_column[i], 1, 1))), parse_number(df_column[i]), sep = "")
+  }
+  return(anonyme_id)
+}
+
 source("../data/corrections.R")
 
 d_trips        <- read.csv("../data/trips_sheet.csv")
@@ -571,6 +579,18 @@ generated_quantities$mode_n_participants_traps <- getmode(n_members_traps$n)
 #####
 #ADD ANTHROPOMETRICS
 #####
+##########################
+#N anthropometric measures
+##########################
+d_anthropometrics$anonymeID <- anonyme(d_anthropometrics$ID)
+
+count_nobs_anthro_shells <- d_anthropometrics %>% filter(anonymeID %in% shell_ppl$anonymeID) %>% count(anonymeID)
+count_nobs_anthro_traps <- d_anthropometrics %>% filter(anonymeID %in% trap_ppl$anonymeID) %>% count(anonymeID)
+
+generated_quantities$max_n_antrho_obs <- max( c( count_nobs_anthro_traps$n, count_nobs_anthro_shells$n))
+
+#individuals were measured one to four times 
+
 #add last measure per individual. 
 anthropometrics <- d_anthropometrics %>% 
   mutate(date_measurement=as.Date(date_measurement, format= "%d/%m/%Y"))%>% 
@@ -592,15 +612,6 @@ generated_quantities$eaerliest_date_anthro <- min(anthropometrics$date_measureme
 ###############
 #ANONIMIZE ID
 ###############
-
-
-anonyme <- function( df_column) {
-  anonyme_id <- vector( length = length(df_column) )
-  for(i in 1:length(df_column)){
-    anonyme_id[i] <- paste( which(letters == tolower(substring(df_column[i], 1, 1))), parse_number(df_column[i]), sep = "")
-  }
-  return(anonyme_id)
-}
 
 shells$anonymeID <- anonyme(shells$who )
 shell_ppl$anonymeID <- anonyme(shell_ppl$ID )
@@ -685,19 +696,44 @@ for(i in 1:nrow(trap_ppl)){
 
 
 #create new df with all answers for all ppl in the sample
-shell_knowledge <- matrix(NA, nrow = nrow(shell_ppl), ncol = ncol(d_knowledge$Y_l), 
-                          dimnames = list( shell_ppl$anonymeID, colnames(d_knowledge$Y_l)) )
+shell_knowledge <- list(matrix(NA, nrow = nrow(shell_ppl), ncol = ncol(d_knowledge$Y_l), 
+                          dimnames = list( shell_ppl$anonymeID, colnames(d_knowledge$Y_l)) ),
+                        matrix(NA, nrow = nrow(shell_ppl), ncol = ncol(d_knowledge$Y_q), 
+                               dimnames = list( shell_ppl$anonymeID, colnames(d_knowledge$Y_q)) ),
+                        matrix(NA, nrow = nrow(shell_ppl), ncol = ncol(d_knowledge$Y_r), 
+                               dimnames = list( shell_ppl$anonymeID, colnames(d_knowledge$Y_r)) ))
 for(i in 1:nrow(shell_ppl)){
   if(shell_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_l)){ 
-    shell_knowledge[i,] <- d_knowledge$Y_l [which (rownames(d_knowledge$Y_l) == rownames(shell_knowledge)[i]),]}
+    shell_knowledge[[1]][i,] <- d_knowledge$Y_l [which (rownames(d_knowledge$Y_l) == rownames(shell_knowledge[[1]])[i]),]}
 }
-trap_knowledge <- matrix(NA, nrow = nrow(trap_ppl), ncol = ncol(d_knowledge$Y_l), 
-                         dimnames = list( trap_ppl$anonymeID, colnames(d_knowledge$Y_l)) )
-for(i in 1:nrow(trap_ppl)){
-  if(trap_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_l)){ 
-    trap_knowledge[i,] <- d_knowledge$Y_l [which (rownames(d_knowledge$Y_l) == rownames(trap_knowledge)[i]),]}
+for(i in 1:nrow(shell_ppl)){
+  if(shell_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_q)){ 
+    shell_knowledge[[2]][i,] <- d_knowledge$Y_q [which (rownames(d_knowledge$Y_q) == rownames(shell_knowledge[[2]])[i]),]}
+}
+for(i in 1:nrow(shell_ppl)){
+  if(shell_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_r)){ 
+    shell_knowledge[[3]][i,] <- d_knowledge$Y_r [which (rownames(d_knowledge$Y_r) == rownames(shell_knowledge[[3]])[i]),]}
 }
 
+
+trap_knowledge <- list(matrix(NA, nrow = nrow(trap_ppl), ncol = ncol(d_knowledge$Y_l), 
+                               dimnames = list( trap_ppl$anonymeID, colnames(d_knowledge$Y_l)) ),
+                        matrix(NA, nrow = nrow(trap_ppl), ncol = ncol(d_knowledge$Y_q), 
+                               dimnames = list( trap_ppl$anonymeID, colnames(d_knowledge$Y_q)) ),
+                        matrix(NA, nrow = nrow(trap_ppl), ncol = ncol(d_knowledge$Y_r), 
+                               dimnames = list( trap_ppl$anonymeID, colnames(d_knowledge$Y_r)) ))
+for(i in 1:nrow(trap_ppl)){
+  if(trap_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_l)){ 
+    trap_knowledge[[1]][i,] <- d_knowledge$Y_l [which (rownames(d_knowledge$Y_l) == rownames(trap_knowledge[[1]])[i]),]}
+}
+for(i in 1:nrow(trap_ppl)){
+  if(trap_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_q)){ 
+    trap_knowledge[[2]][i,] <- d_knowledge$Y_q [which (rownames(d_knowledge$Y_q) == rownames(trap_knowledge[[2]])[i]),]}
+}
+for(i in 1:nrow(trap_ppl)){
+  if(trap_ppl$anonymeID[i] %in% rownames(d_knowledge$Y_r)){ 
+    trap_knowledge[[3]][i,] <- d_knowledge$Y_r [which (rownames(d_knowledge$Y_r) == rownames(trap_knowledge[[3]])[i]),]}
+}
 
 
 ######################
