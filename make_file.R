@@ -11,7 +11,7 @@
 #init project 
 #remove folders and files generated during compilation of the project
 if (dir.exists("plots")) unlink("plots", recursive = TRUE)
-if (dir.exists("3_outcomes/model_fit")) unlink("3_outcomes/model_fit", recursive = TRUE)
+if (dir.exists("4_outcomes/model_fit")) unlink("4_outcomes/model_fit", recursive = TRUE)
 
 model_binaries <- list.files("models", full.names = TRUE)
 model_binaries <- model_binaries[-grep("\\.stan$", model_binaries)]
@@ -20,7 +20,7 @@ file.remove(model_binaries)
 #create folders necessary in the directory
 dir.create("plots")
 dir.create("plots/validate_model")
-dir.create("3_outcomes/model_fit")
+dir.create("4_outcomes/model_fit")
 
 #load packages
 

@@ -343,6 +343,69 @@ combined_plot <- plot_grid(plots[[1]], bottom_row, labels = c('A', ''), label_si
 print(combined_plot)
 dev.off()
 
+#############################################
+#fit to data - bernoulli model for traps only
+#############################################
+#make data lists
+dat_traps <- make_list_data_age(foraging_type = "traps")
+
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_t_bern.rda")
+
+png("plots/bernoulli.png", height = 8, width = 16, units = "cm", res = 500, type="cairo")
+par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+
+#traps 
+phi <-  mean(exp(post_t_bern$iota)) * ( 
+  (1-exp(- mean(post_t_bern$beta) * seq_trait  )) ^ mean(post_t_bern$gamma)) 
+psi <- (mean(dat_traps$duration)) ^ mean(post_t$xi)
+p <- 1 - exp ( - mean(post_t_bern$alpha) * phi * psi)
+samp_data <- rbern(length(seq_trait),  p)
+
+
+##########KEEP GOING HERE MAKING PLOT FOR BERNOULLI TRAP STUFF! Much better
+
+#NB making plot with 13212 only (one of best hunters) to make plot with optimal situation to raise curve off zero
+plot(jitter(seq_trait) * mean_age_traps, samp_data -0.1, 
+     xlab = "age", ylab = "n captures",
+     xlim = c(0,age_plot), ylim = c(-0.2, 1.1), 
+     pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
+#with average actor and average time
+for(i in 1:150){
+  phi <-  apply( exp(post_t_bern$iota), 1, mean)[i] * #[i,dat_traps$best_guy]
+    ( (1-exp(- post_t_bern$beta[i] * seq_trait  )) ^ post_t_bern$gamma[i])  
+  psi <-  max(dat_traps$duration) ^ post_t_bern$xi[i]  
+  p <- 1 - exp ( - post_t_bern$alpha[i] * phi * psi)
+  lines( seq_trait * mean_age_traps,  p, 
+         col = col.alpha(trapcol, 0.2), lwd = 1)
+}
+points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
+       jitter(ifelse(dat_traps$success >= 1, 1, 0), amount = 0.1) - 0.1, 
+       pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
+       col = col.alpha(othercol, ifelse(dat_traps$success >= 1, 0.7, 0.4)))
+text(1, 2.95, "A")
+
+#######################################
+#age variation
+#######################################
+
+plot(NULL, xlim = c(0,age_plot), ylim = c(0,1), 
+     xlab = "age", ylab = "\u03C6")#, main = "Age only"
+phi <- (1-exp(-median(post_t$beta) * seq_trait  )) ^ median(post_t$gamma)  
+lines( seq_trait * mean_age_traps,  phi, col = col.alpha(trapcol, 1), lwd = 2)
+mu_phi <-   sapply ( seq_trait , function (x) PI ((1-exp(-post_t$beta * x )) ^ post_t$gamma, 0.95) )
+shade(mu_phi, seq_trait* mean_age_traps, col = col.alpha(trapcol, 0.1))
+mu_phi <-   sapply ( seq_trait , function (x) PI ((1-exp(-post_t$beta * x )) ^ post_t$gamma, 0.5) )
+shade(mu_phi, seq_trait* mean_age_traps, col = col.alpha(trapcol, 0.15))
+mu_phi <-   sapply ( seq_trait , function (x) PI ((1-exp(-post_t$beta * x )) ^ post_t$gamma, 0.3) )
+shade(mu_phi, seq_trait* mean_age_traps, col = col.alpha(trapcol, 0.15))
+for(i in 1:30){
+  phi <-  (1-exp(-post_t$beta[i] * seq_trait )) ^ post_t$gamma[i]
+  lines( seq_trait * mean_age_traps,  phi, col = col.alpha(trapcol, 0.3))
+}
+text(1, 0.95, "B")
+dev.off()
+
 
 ##################################################
 #AGE ONLY - traps with average 

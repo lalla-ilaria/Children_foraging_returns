@@ -354,15 +354,19 @@ make_list_data_complete_cases <- function(data = real_data, foraging_type ){
     N = nrow(d_shellppl),
     M = nrow(d_shells),
     age = d_shellppl$age / mean(data$shell_ppl$age),
+    sex = ifelse(d_shellppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
     returns = as.numeric(d_shells$returns)/1000,
     duration = d_shells$lenght_min/mean(d_shells$lenght_min),
     tide = d_shells$tide_avg_depth,
     ID_i= d_shells$index_id,
+    has_height = ifelse(is.na(d_shellppl$height), 0, 1),# #vector of 0/1 for whether height has to be imputed
     height = d_shellppl$height/mean(d_shellppl$height, na.rm = TRUE),
     min_height = 50/mean(d_shellppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
     #grip data
+    has_grip = ifelse(is.na(d_shellppl$grip), 0, 1),# #vector of 0/1 for whether grip has to be imputed
     grip = d_shellppl$grip/mean(d_shellppl$grip, na.rm = TRUE),
     #knowledge data
+    has_knowledge = ifelse(is.na(d_shellppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
     knowledge_nit = d_shellppl$knowledge/mean(d_shellppl$knowledge, na.rm = TRUE),
     F_n = ncol(d_shell_k[[1]]),                        #n items in freelist
     Q_n = ncol(d_shell_k[[2]]),                        #n items in questionnaire
@@ -379,13 +383,17 @@ make_list_data_complete_cases <- function(data = real_data, foraging_type ){
     ID_i= d_traps$index_id,                    #index of person of trip 
     success = d_traps$success,                 #whether trap captured something
     age = d_trapppl$age / mean(data$trap_ppl$age),
+    sex = ifelse(d_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
     duration = d_traps$exposure/mean(d_traps$exposure),
     best_guy = best_guy,
+    has_height = ifelse(is.na(d_trapppl$height), 0, 1),# #vector of 0/1 for whether height has to be imputed
     height = d_trapppl$height/mean(d_trapppl$height, na.rm = TRUE),
     min_height = 50/mean(d_trapppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
     #grip data
+    has_grip = ifelse(is.na(d_trapppl$grip), 0, 1),# #vector of 0/1 for whether grip has to be imputed
     grip = d_trapppl$grip/mean(d_trapppl$grip, na.rm = TRUE),
     #knowledge data
+    has_knowledge = ifelse(is.na(d_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
     knowledge_nit = d_trapppl$knowledge/mean(d_trapppl$knowledge, na.rm = TRUE),
     F_n = ncol(d_trap_k[[1]]),                        #n items in freelist
     Q_n = ncol(d_trap_k[[2]]),                        #n items in questionnaire
@@ -401,13 +409,17 @@ make_list_data_complete_cases <- function(data = real_data, foraging_type ){
     ID_i= d_all_traps$index_id,                    #index of person of trip 
     success = d_all_traps$success,                 #whether trap captured something
     age = d_all_trapppl$age / mean(data$trap_ppl$age),
+    sex = ifelse(d_all_trapppl$sex == "m", 1, 2), #make vector of sexes 1 = male 2 = female
     duration = d_all_traps$lenght_hour/mean(d_all_traps$lenght_hour),
     best_all_trap_guy = best_all_trap_guy,
+    has_height = ifelse(is.na(d_all_trapppl$height), 0, 1),# #vector of 0/1 for whether height has to be imputed
     height = d_all_trapppl$height/mean(d_all_trapppl$height, na.rm = TRUE),
     min_height = 50/mean(d_all_trapppl$height, na.rm = TRUE),#average height of newborn as intercept in height model
     #grip data
+    has_grip = ifelse(is.na(d_all_trapppl$grip), 0, 1),# #vector of 0/1 for whether grip has to be imputed
     grip = d_all_trapppl$grip/mean(d_all_trapppl$grip, na.rm = TRUE),
     #knowledge data
+    has_knowledge = ifelse(is.na(d_all_trapppl$knowledge), 0, 1),# #vector of 0/1 for whether knowledge has to be imputed
     knowledge_nit = d_all_trapppl$knowledge/mean(d_all_trapppl$knowledge, na.rm = TRUE),
     F_n = ncol(d_trap_k[[1]]),                        #n items in freelist
     Q_n = ncol(d_trap_k[[2]]),                        #n items in questionnaire
