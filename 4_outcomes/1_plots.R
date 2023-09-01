@@ -54,26 +54,26 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
        xlab = "age", ylab = "n captures",
        xlim = c(0,age_plot), ylim = c(-0.2, 3.1), 
        pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
-  #with ideal conditions (best actor, longest time)
-  for(i in 1:150){
-    phi <-  post_t$iota[i,dat_traps$best_guy] + 
-            post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait)) 
-    psi <-  post_t$xi[i] * log(max(dat_traps$duration))  
-    #p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
-    #lines( seq_trait * mean_age_traps,  p, 
-    lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
-    lines( seq_trait * mean_age_traps,  lambda , 
-      col = col.alpha(trapcol, 0.2), lwd = 1)
-  }
-  #with average actor and average time 
+  # #with ideal conditions (best actor, longest time)
   # for(i in 1:150){
-  #   phi <-  apply(post_t$iota,1,mean )[i] + 
+  #   phi <-  post_t$iota[i,dat_traps$best_guy] + 
   #           post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait)) 
-  #   psi <-  post_t$xi[i] * mean(log(dat_traps$duration))  
+  #   psi <-  post_t$xi[i] * log(max(dat_traps$duration))  
+  #   #p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
+  #   #lines( seq_trait * mean_age_traps,  p, 
   #   lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
-  #   lines( seq_trait * mean_age_traps,  lambda + 0.1, 
-  #       col = col.alpha(trapcol, 0.2), lwd = 1)
+  #   lines( seq_trait * mean_age_traps,  lambda , 
+  #     col = col.alpha(trapcol, 0.2), lwd = 1)
   # }
+  #with average actor and average time 
+  for(i in 1:150){
+    phi <-  apply(post_t$iota,1,mean )[i] +
+            post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait))
+    psi <-  post_t$xi[i] * mean(log(dat_traps$duration))
+    lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
+    lines( seq_trait * mean_age_traps,  lambda + 0.1,
+        col = col.alpha(trapcol, 0.2), lwd = 1)
+  }
   points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
          jitter(dat_traps$success, amount = 0.1) - 0.1, 
     pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
@@ -124,9 +124,11 @@ dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
 #load samples from model fit
-load(file = "4_outcomes/model_fit/post_s_all.rda")
-load(file = "4_outcomes/model_fit/post_t_all.rda")
+load(file = "4_outcomes/model_fit/post_s_allk.rda")
+load(file = "4_outcomes/model_fit/post_t_allk.rda")
 
+post_s <- post_s_allk
+post_t <- post_t_allk
 
 
 

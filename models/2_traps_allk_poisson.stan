@@ -65,9 +65,10 @@ parameters{
   
   //grip parameters
   real<lower=0> sigma_grip;    //sd for height estimation
-  vector<lower=0>[2] epsilon;  //max effect of age on grip, sex specific
-  vector<lower=0>[2] upsilon;  //sex specific grip speed
-  vector<lower=0>[N] grip_unobs;//vector of distributions for grip - used when unobserved
+  real<lower=0> epsilon;   //delay of age on grip, sex specific
+  vector<lower=0>[2] upsilon;   //sex specific grip speed
+  vector<lower=0>[2] nu; //max effect of age on grip, sex specific
+  vector<lower=0>[N] grip_unobs;
 }//parameters
 
 transformed parameters{
@@ -148,6 +149,7 @@ model{
   for (i in 1:N) grip_unobs[i] ~ normal(1, 0.5)T[0,];
   epsilon ~ exponential(1);
   upsilon ~ exponential(1);
+  nu ~ exponential(1);
 
 	//irt across knowledge people to estimage age and sex specific knowledge
 	for ( i in 1:N ) {
@@ -181,16 +183,10 @@ model{
 
   }
   
-  //height model
-  for (i in 1:N){
-      real mu_height = min_height + kappa[sex[i]] * ( 1 - exp(-chi[sex[i]] * age[i]) );
-      height_merged[i] ~ normal(mu_height, sigma_height);
-
-  }
 
   //grip model
   for (i in 1:N){
-      real mu_grip = epsilon[sex[i]] * ( 1 - exp(-upsilon[sex[i]] * age[i]) );
+      real mu_grip = nu[sex[i]] * ( 1 - exp(-upsilon[sex[i]] * age[i] ^ epsilon) ) ;
       grip_merged[i] ~ normal(mu_grip, sigma_grip);
 
   }

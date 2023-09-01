@@ -343,6 +343,303 @@ combined_plot <- plot_grid(plots[[1]], bottom_row, labels = c('A', ''), label_si
 print(combined_plot)
 dev.off()
 
+
+###########
+#counterfactual with sds
+###########
+#load data
+dat_shells <- make_list_data_all(foraging_type = "shells")
+dat_traps <- make_list_data_all(foraging_type = "traps")
+
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_allk.rda")
+load(file = "4_outcomes/model_fit/post_t_allk.rda")
+post_s <- post_s_allk
+post_t <- post_t_allk
+
+diffs_out <- data.frame(matrix(nrow=length(post_s$alpha), ncol = 9))
+colnames(diffs_out) <- c("sg","sh","sk","sd","st","tg","th","tk","td")
+diffs_phi <- data.frame(matrix(nrow=length(post_s$alpha), ncol = 6))
+colnames(diffs_phi) <- c("sg","sh","sk","tg","th","tk")
+low_grip <- log(mean(dat_shells$grip, na.rm = TRUE) - sd(dat_shells$grip, na.rm = TRUE))
+high_grip <- log(mean(dat_shells$grip, na.rm = TRUE) + sd(dat_shells$grip, na.rm = TRUE))
+low_height <- log(mean(dat_shells$height, na.rm = TRUE) - sd(dat_shells$height, na.rm = TRUE))
+high_height <- log(mean(dat_shells$height, na.rm = TRUE) + sd(dat_shells$height, na.rm = TRUE))
+low_know <- mean(post_s$knowledge) - sd(post_s$knowledge)
+high_know <- mean(post_s$knowledge) + sd(post_s$knowledge)
+low_dur <- log(mean(dat_shells$duration, na.rm = TRUE) - sd(dat_shells$duration, na.rm = TRUE))
+high_dur <- log(mean(dat_shells$duration, na.rm = TRUE) + sd(dat_shells$duration, na.rm = TRUE))
+low_tide <- mean(dat_shells$tide, na.rm = TRUE) - sd(dat_shells$tide, na.rm = TRUE)
+high_tide <- mean(dat_shells$tide, na.rm = TRUE) + sd(dat_shells$tide, na.rm = TRUE)
+#max - min - gives same result as the long one
+for (i in 1:5) {
+  phi_min <-  apply(post_s$iota,1,mean )  +
+    post_s$gamma * log(1-exp(- post_s$beta * 1.23  )) +
+    post_s$theta_g* ifelse(i == 1 , low_grip, mean(log(dat_shells$grip), na.rm = TRUE))  +
+    post_s$eta_h* ifelse(i == 2 , low_height, mean(log(dat_shells$height), na.rm = TRUE)) +
+    #post_s$zeta_k* * ifelse(i == 3, min(log(dat_shells$knowledge), na.rm = TRUE) , mean(log(dat_shells$knowledge), na.rm = TRUE))
+    post_s$zeta_k* ifelse(i == 3 , low_know , mean(apply(post_s$knowledge, 2, mean)) )
+  psi_min <-  post_s$xi * ifelse(i == 4 , low_dur, mean(log(dat_shells$duration), na.rm = TRUE))+
+    post_s$tau*ifelse(i == 5 , low_tide, mean(dat_shells$tide, na.rm = TRUE))
+  min_r <- exp (log(post_s$alpha) + phi_min + psi_min +
+                  (post_s$sigma^2 /2))
+  phi_max <-  apply(post_s$iota,1,mean )  +
+    post_s$gamma * log(1-exp(- post_s$beta * 1.23  )) +
+    post_s$theta_g* ifelse(i == 1 , high_grip, mean(log(dat_shells$grip), na.rm = TRUE))  +
+    post_s$eta_h* ifelse(i == 2 , high_height, mean(log(dat_shells$height), na.rm = TRUE)) +
+    #post_s$zeta_k* * ifelse(i == 3, max(log(dat_shells$knowledge), na.rm = TRUE) , mean(log(dat_shells$knowledge), na.rm = TRUE))
+    post_s$zeta_k* ifelse(i == 3 , high_know , mean(apply(post_s$knowledge, 2, mean)) )
+  psi_max <-  post_s$xi * ifelse(i == 4 , high_dur, mean(log(dat_shells$duration), na.rm = TRUE))+
+    post_s$tau*ifelse(i == 5 , high_tide, mean(dat_shells$tide, na.rm = TRUE))
+  max_r <- exp (log(post_s$alpha) + phi_max + psi_max +
+                  (post_s$sigma^2 /2))
+  diffs_out[i] <- max_r - min_r
+  if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
+}
+diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+                                  rep("grip", nrow(diffs_out)),
+                                  rep("height", nrow(diffs_out)),
+                                  rep("duration", nrow(diffs_out)),
+                                  rep("tide", nrow(diffs_out))),
+                    kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
+)
+
+diffs_shells <- diffs #%>% 
+#  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+
+low_grip <- log(mean(dat_traps$grip, na.rm = TRUE) - sd(dat_traps$grip, na.rm = TRUE))
+high_grip <- log(mean(dat_traps$grip, na.rm = TRUE) + sd(dat_traps$grip, na.rm = TRUE))
+low_height <- log(mean(dat_traps$height, na.rm = TRUE) - sd(dat_traps$height, na.rm = TRUE))
+high_height <- log(mean(dat_traps$height, na.rm = TRUE) + sd(dat_traps$height, na.rm = TRUE))
+low_know <- mean(post_t$knowledge) - sd(post_t$knowledge)
+high_know <- mean(post_t$knowledge) + sd(post_t$knowledge)
+low_dur <- log(mean(dat_traps$duration, na.rm = TRUE) - sd(dat_traps$duration, na.rm = TRUE))
+high_dur <- log(mean(dat_traps$duration, na.rm = TRUE) + sd(dat_traps$duration, na.rm = TRUE))
+for (i in 1:4) {
+  phi_min <-  apply(post_t$iota,1,mean )  +
+    post_t$gamma * log(1-exp(- post_t$beta * 1.23  )) +
+    post_t$theta_g* ifelse( i == 1, low_grip, mean(log(dat_traps$grip), na.rm = TRUE) )  +
+    post_t$eta_h* ifelse( i == 2, low_height, mean(log(dat_traps$height), na.rm = TRUE) ) +
+    #post_s$zeta_k* ifelse( i == 3, min(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) )
+    post_t$zeta_k* ifelse( i == 3, low_know, mean(apply(post_t$knowledge, 2, mean) ) ) 
+  psi <-  post_t$xi * ifelse( i == 4, low_dur, mean(log(dat_traps$duration), na.rm = TRUE) ) 
+  #min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+  min_k <- post_t$alpha * exp(phi_min) * exp(psi)
+  phi_max <-  apply(post_t$iota,1,mean )  +
+    post_t$gamma * log(1-exp(- post_t$beta * 1.23  )) +
+    post_t$theta_g* ifelse( i == 1, high_grip, mean(log(dat_traps$grip), na.rm = TRUE) ) +
+    post_t$eta_h * ifelse( i == 2, high_height, mean(log(dat_traps$height), na.rm = TRUE) ) +
+    #post_s$zeta_k* ifelse( i == 3, max(log(dat_traps$knowledge), na.rm = TRUE), mean(log(dat_traps$knowledge), na.rm = TRUE) ) +
+    post_t$zeta_k* ifelse( i == 3, high_know, mean( apply(post_t$knowledge, 2, mean) ) ) 
+  psi <-  post_t$xi * ifelse( i == 4, high_dur, mean(log(dat_traps$height), na.rm = TRUE) ) 
+  #max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+  max_k <- post_t$alpha * exp(phi_max) * exp(psi)
+  diffs_out[i + 5] <- max_k - min_k
+  if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
+}
+
+diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+                                  rep("grip", nrow(diffs_out)),
+                                  rep("height", nrow(diffs_out)),
+                                  rep("duration", nrow(diffs_out))),
+                    p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
+)
+
+diffs_traps <- diffs #%>% 
+#  mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
+
+out_shells_max <- ggplot(diffs_shells, aes(x = variable, y = kg_shellfish)) + 
+  geom_hline(yintercept = 0, color = "grey90") +
+  geom_violin(fill = col.alpha(shellcol, 0.6),
+              colour = shellcol) +
+  labs(y = "kg shellfish", x = "")+
+  ylim(-max(dat_shells$returns), max(dat_shells$returns))+
+  theme_classic()
+
+out_traps_max <- ggplot(diffs_traps, aes(x = variable, y = p_success)) + 
+  geom_hline(yintercept = 0, color = "grey90") +
+  geom_violin(fill = col.alpha(trapcol, 0.6),
+              colour = trapcol) +
+  labs(y = "rate success", x = "")+
+  ylim(-1, 1)+
+  theme_classic()
+
+v_diffs_phi <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
+                                        rep("grip", nrow(diffs_phi)),
+                                        rep("height", nrow(diffs_phi)),
+                                        rep("knowledge", nrow(diffs_phi)),
+                                        rep("grip", nrow(diffs_phi)),
+                                        rep("height", nrow(diffs_phi))),
+                          p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
+                          returns = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
+
+
+phi_trait_max <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = returns , color = returns) )+ 
+  geom_hline(yintercept = 0, color = "grey90") +
+  geom_violin(trim=FALSE)+
+  scale_fill_manual("returns",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.6), col.alpha(trapcol, 0.6 )),guide = guide_legend())+ #gives colors as defined. 
+  scale_color_manual("returns",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined.
+  labs(x = "", y = "\u03C6")+
+  ylim(-10, 10)+
+  theme_classic()+
+  theme(legend.position="top")
+
+
+
+png("plots/alldiffs_sds.png", height = 14, width = 16, units = "cm", res = 500, type="cairo")
+plots <- align_plots(phi_trait_max, out_shells_max, align = 'v', axis = 'l')
+# then build the bottom row
+bottom_row <- plot_grid(plots[[2]], out_traps_max, labels = c('B', 'C'), label_size = 12)
+
+# then combine with the top row for final plot
+combined_plot <- plot_grid(plots[[1]], bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
+print(combined_plot)
+dev.off()
+
+
+#####################################
+#effect of stuff complete cases
+#####################################
+dat_shells_cc <- make_list_data_complete_cases(foraging_type = "shells")
+dat_traps_cc <- make_list_data_complete_cases(foraging_type = "traps")
+
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_all_cc.rda")
+load(file = "4_outcomes/model_fit/post_t_all_cc.rda")
+
+post_s <- post_s_all_cc
+post_t <- post_s_all_cc
+
+
+
+###########
+#check max and min effect
+###########
+
+diffs_out <- data.frame(matrix(nrow=length(post_s$alpha), ncol = 9))
+colnames(diffs_out) <- c("sg","sh","sk","sd","st","tg","th","tk","td")
+diffs_phi <- data.frame(matrix(nrow=length(post_s$alpha), ncol = 6))
+colnames(diffs_phi) <- c("sg","sh","sk","tg","th","tk")
+
+#max - min - gives same result as the long one
+for (i in 1:5) {
+  phi_min <-  apply(post_s$iota,1,mean )  +
+    post_s$gamma * log(1-exp(- post_s$beta * 1.23  )) +
+    post_s$theta_g* ifelse(i == 1 , min(log(dat_shells_cc$grip), na.rm = TRUE), mean(log(dat_shells_cc$grip), na.rm = TRUE))  +
+    post_s$eta_h* ifelse(i == 2 , min(log(dat_shells_cc$height), na.rm = TRUE), mean(log(dat_shells_cc$height), na.rm = TRUE)) +
+    #post_s$zeta_k* * ifelse(i == 3, min(log(dat_shells_cc$knowledge), na.rm = TRUE) , mean(log(dat_shells_cc$knowledge), na.rm = TRUE))
+    post_s$zeta_k* ifelse(i == 3 , min(apply(post_s$knowledge, 2, mean)) , mean(apply(post_s$knowledge, 2, mean)) )
+  psi_min <-  post_s$xi * ifelse(i == 4 , min(log(dat_shells_cc$duration), na.rm = TRUE), mean(log(dat_shells_cc$duration), na.rm = TRUE))+
+    post_s$tau*ifelse(i == 5 , min(dat_shells_cc$tide, na.rm = TRUE), mean(dat_shells_cc$tide, na.rm = TRUE))
+  min_r <- exp (log(post_s$alpha) + phi_min + psi_min +
+                  (post_s$sigma^2 /2))
+  phi_max <-  apply(post_s$iota,1,mean )  +
+    post_s$gamma * log(1-exp(- post_s$beta * 1.23  )) +
+    post_s$theta_g* ifelse(i == 1 , max(log(dat_shells_cc$grip), na.rm = TRUE), mean(log(dat_shells_cc$grip), na.rm = TRUE))  +
+    post_s$eta_h* ifelse(i == 2 , max(log(dat_shells_cc$height), na.rm = TRUE), mean(log(dat_shells_cc$height), na.rm = TRUE)) +
+    #post_s$zeta_k* * ifelse(i == 3, max(log(dat_shells_cc$knowledge), na.rm = TRUE) , mean(log(dat_shells_cc$knowledge), na.rm = TRUE))
+    post_s$zeta_k* ifelse(i == 3 , max(apply(post_s$knowledge, 2, mean)) , mean(apply(post_s$knowledge, 2, mean)) )
+  psi_max <-  post_s$xi * ifelse(i == 4 , max(log(dat_shells_cc$duration), na.rm = TRUE), mean(log(dat_shells_cc$duration), na.rm = TRUE))+
+    post_s$tau*ifelse(i == 5 , max(dat_shells_cc$tide, na.rm = TRUE), mean(dat_shells_cc$tide, na.rm = TRUE))
+  max_r <- exp (log(post_s$alpha) + phi_max + psi_max +
+                  (post_s$sigma^2 /2))
+  diffs_out[i] <- max_r - min_r
+  if( i %in% 1:3) diffs_phi[i] <- phi_max - phi_min
+}
+diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+                                  rep("grip", nrow(diffs_out)),
+                                  rep("height", nrow(diffs_out)),
+                                  rep("duration", nrow(diffs_out)),
+                                  rep("tide", nrow(diffs_out))),
+                    kg_shellfish =  c(diffs_out$sk, diffs_out$sg, diffs_out$sh, diffs_out$sd, diffs_out$st)
+)
+
+diffs_shells <- diffs #%>% 
+#  mutate( variable = fct_reorder(.f = variable, .x = kg_shellfish, .fun = mean))
+
+
+for (i in 1:4) {
+  phi_min <-  apply(post_t$iota,1,mean )  +
+    post_t$gamma * log(1-exp(- post_t$beta * 1.23  )) +
+    post_t$theta_g* ifelse( i == 1, min(log(dat_traps_cc$grip), na.rm = TRUE), mean(log(dat_traps_cc$grip), na.rm = TRUE) )  +
+    post_t$eta_h* ifelse( i == 2, min(log(dat_traps_cc$height), na.rm = TRUE), mean(log(dat_traps_cc$height), na.rm = TRUE) ) +
+    #post_s$zeta_k* ifelse( i == 3, min(log(dat_traps_cc$knowledge), na.rm = TRUE), mean(log(dat_traps_cc$knowledge), na.rm = TRUE) )
+    post_t$zeta_k* ifelse( i == 3, min(apply(post_t$knowledge, 2, mean)), mean(apply(post_t$knowledge, 2, mean) ) ) 
+  psi <-  post_t$xi * ifelse( i == 4, min(log(dat_traps_cc$duration), na.rm = TRUE), mean(log(dat_traps_cc$duration), na.rm = TRUE) ) 
+  #min_k <- 1 - exp ( - post_t$alpha * exp(phi_min) * exp(psi))
+  min_k <- post_t$alpha * exp(phi_min) * exp(psi)
+  phi_max <-  apply(post_t$iota,1,mean )  +
+    post_t$gamma * log(1-exp(- post_t$beta * 1.23  )) +
+    post_t$theta_g* ifelse( i == 1, max(log(dat_traps_cc$grip), na.rm = TRUE), mean(log(dat_traps_cc$grip), na.rm = TRUE) ) +
+    post_t$eta_h * ifelse( i == 2, max(log(dat_traps_cc$height), na.rm = TRUE), mean(log(dat_traps_cc$height), na.rm = TRUE) ) +
+    #post_s$zeta_k* ifelse( i == 3, max(log(dat_traps_cc$knowledge), na.rm = TRUE), mean(log(dat_traps_cc$knowledge), na.rm = TRUE) ) +
+    post_t$zeta_k* ifelse( i == 3, max(apply(post_t$knowledge, 2, mean)), mean( apply(post_t$knowledge, 2, mean) ) ) 
+  psi <-  post_t$xi * ifelse( i == 4, max(log(dat_traps_cc$height), na.rm = TRUE), mean(log(dat_traps_cc$height), na.rm = TRUE) ) 
+  #max_k <- 1 - exp ( - post_t$alpha * exp(phi_max) * exp(psi))
+  max_k <- post_t$alpha * exp(phi_max) * exp(psi)
+  diffs_out[i + 5] <- max_k - min_k
+  if( i %in% 1:3) diffs_phi[i + 3] <- phi_max - phi_min
+}
+
+diffs <- data.frame(variable = c( rep("knowledge", nrow(diffs_out)),
+                                  rep("grip", nrow(diffs_out)),
+                                  rep("height", nrow(diffs_out)),
+                                  rep("duration", nrow(diffs_out))),
+                    p_success =  c(diffs_out$tk, diffs_out$tg, diffs_out$th, diffs_out$td)
+)
+
+diffs_traps <- diffs #%>% 
+#  mutate( variable = fct_reorder(.f = variable, .x = p_success, .fun = mean))
+
+out_shells_max <- ggplot(diffs_shells, aes(x = variable, y = kg_shellfish)) + 
+  geom_hline(yintercept = 0, color = "grey90") +
+  geom_violin(fill = col.alpha(shellcol, 0.6),
+              colour = shellcol) +
+  labs(y = "kg shellfish", x = "")+
+  ylim(-max(dat_shells_cc$returns), max(dat_shells_cc$returns))+
+  theme_classic()
+
+out_traps_max <- ggplot(diffs_traps, aes(x = variable, y = p_success)) + 
+  geom_hline(yintercept = 0, color = "grey90") +
+  geom_violin(fill = col.alpha(trapcol, 0.6),
+              colour = trapcol) +
+  labs(y = "rate success", x = "")+
+  ylim(-1, 1)+
+  theme_classic()
+
+v_diffs_phi <- data.frame(variable = c( rep("knowledge", nrow(diffs_phi)),
+                                        rep("grip", nrow(diffs_phi)),
+                                        rep("height", nrow(diffs_phi)),
+                                        rep("knowledge", nrow(diffs_phi)),
+                                        rep("grip", nrow(diffs_phi)),
+                                        rep("height", nrow(diffs_phi))),
+                          p_success =  c(diffs_phi$sk, diffs_phi$sg, diffs_phi$sh, diffs_phi$tk, diffs_phi$tg, diffs_phi$th),
+                          returns = c(rep("shell", 3*nrow(diffs_phi)), rep("trap", 3*nrow(diffs_phi))))
+
+
+phi_trait_max <- ggplot(v_diffs_phi, aes(x = variable, y = p_success, fill = returns , color = returns) )+ 
+  geom_hline(yintercept = 0, color = "grey90") +
+  geom_violin(trim=FALSE)+
+  scale_fill_manual("returns",  limits= c("shell", "trap"), values = c( col.alpha(shellcol, 0.6), col.alpha(trapcol, 0.6 )),guide = guide_legend())+ #gives colors as defined. 
+  scale_color_manual("returns",  limits= c("shell", "trap"), values = c(shellcol, trapcol),guide = guide_legend())+ #gives colors as defined.
+  labs(x = "", y = "\u03C6")+
+  ylim(-10, 10)+
+  theme_classic()+
+  theme(legend.position="top")
+
+
+
+png("plots/alldiffs_completecases.png", height = 14, width = 16, units = "cm", res = 500, type="cairo")
+plots <- align_plots(phi_trait_max, out_shells_max, align = 'v', axis = 'l')
+# then build the bottom row
+bottom_row <- plot_grid(plots[[2]], out_traps_max, labels = c('B', 'C'), label_size = 12)
+
+# then combine with the top row for final plot
+combined_plot <- plot_grid(plots[[1]], bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
+print(combined_plot)
+dev.off()
+
+
 #############################################
 #fit to data - bernoulli model for traps only
 #############################################
@@ -368,7 +665,7 @@ samp_data <- rbern(length(seq_trait),  p)
 #NB making plot with 13212 only (one of best hunters) to make plot with optimal situation to raise curve off zero
 plot(jitter(seq_trait) * mean_age_traps, samp_data -0.1, 
      xlab = "age", ylab = "n captures",
-     xlim = c(0,age_plot), ylim = c(-0.2, 1.1), 
+     xlim = c(0,age_plot), ylim = c(-0.2, 1.05), 
      pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
 #with average actor and average time
 for(i in 1:150){
@@ -383,7 +680,7 @@ points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5),
        jitter(ifelse(dat_traps$success >= 1, 1, 0), amount = 0.1) - 0.1, 
        pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
        col = col.alpha(othercol, ifelse(dat_traps$success >= 1, 0.7, 0.4)))
-text(1, 2.95, "A")
+text(1, 1, "A")
 
 #######################################
 #age variation
@@ -414,7 +711,7 @@ dev.off()
 dat_traps <- make_list_data_age(foraging_type = "traps")
 load(file = "4_outcomes/model_fit/post_t_age.rda")
 
-png("plots/age_only_trap_mean.png", height = 8, width = 8, units = "cm", res = 500, type="cairo")
+png("plots/age_only_trap_best_conditions.png", height = 8, width = 8, units = "cm", res = 500, type="cairo")
 par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 
 #traps 
@@ -429,13 +726,15 @@ plot(jitter(seq_trait) * mean_age_traps, samp_data - 0.1,
      pch = 16, col = col.alpha("lawngreen", ifelse(samp_data >= 1, 0.7, 0.5)))
 #with average actor and average time 
 for(i in 1:150){
-  phi <-  apply(post_t$iota,1,mean )[i] +
-          post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait))
-  psi <-  post_t$xi[i] * mean(log(dat_traps$duration))
-  lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
-  lines( seq_trait * mean_age_traps,  lambda ,
+    phi <-  post_t$iota[i,dat_traps$best_guy] +
+            post_t$gamma[i] * log(1-exp(- post_t$beta[i] * seq_trait))
+    psi <-  post_t$xi[i] * log(max(dat_traps$duration))
+    #p <- 1 - exp ( - post_t$alpha[i] * exp(phi) * exp(psi))
+    #lines( seq_trait * mean_age_traps,  p,
+    lambda <-  post_t$alpha[i] * exp(phi) * exp(psi)
+    lines( seq_trait * mean_age_traps,  lambda ,
       col = col.alpha(trapcol, 0.2), lwd = 1)
-}
+  }
 points(jitter(dat_traps$age[dat_traps$ID_i] * mean_age_traps, amount = 0.5), 
        jitter(dat_traps$success, amount = 0.1) -0.1, 
        pch = 16, cex = 0.7,#ifelse(dat_traps$success == 1, 0.8, 0.7), 
@@ -535,6 +834,12 @@ plot(x = dat_shells$age * mean_age_shells,
      pch = ifelse(dat_shells$has_height == 1, 19, 1) , 
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 ), tick = FALSE  )
+for (i in 1:dat_shells$N) {
+  points(rep(dat_shells$age[i] * mean_age_shells, 100),
+         post_s$height_merged[1:100, i],
+         cex = 0.6,
+         pch = 19,
+         col = ifelse(dat_shells$has_height[i] == 0, col.alpha(sex_col[i], 0.04), col.alpha("white", 0)))}
 for (i in 1:100) {
   lines(x = seq_trait  * mean_age_shells,  
         y = dat_shells$min_height + post_s$kappa[i,1] * ( 1 - exp(-post_s$chi[i,1] * seq_trait)) ,  
@@ -546,6 +851,7 @@ for (i in 1:100) {
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
+
 plot(x = dat_shells$age  * mean_age_shells, 
      y = apply(post_s$grip_merged, 2, mean), 
      xlim = c(0,age_plot),
@@ -556,14 +862,20 @@ plot(x = dat_shells$age  * mean_age_shells,
      pch = ifelse(dat_shells$has_grip == 1, 19, 1) , 
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 ), tick = FALSE  )
+for (i in 1:dat_shells$N) {
+  points(rep(dat_shells$age[i] * mean_age_shells, 100),
+         post_s$grip_merged[1:100, i],
+         cex = 0.6,
+         pch = 19,
+         col = ifelse(dat_shells$has_grip[i] == 0, col.alpha(sex_col[i], 0.04), col.alpha("white", 0)))}
 for (i in 1:100) {
   lines(x = seq_trait* mean_age_shells,  
-        y = post_s$epsilon[i,1] * ( 1 - exp(-post_s$upsilon[i,1] * seq_trait)) ,  
+        y = post_s$nu *( 1 - exp(-post_s$upsilon[i,1] * seq_trait ^ post_s$epsilon[i,1])) ,   
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_shells,  
-        y = post_s$epsilon[i,2] * ( 1 - exp(-post_s$upsilon[i,2] * seq_trait)) ,  
+        y = post_s$nu *( 1 - exp(-post_s$upsilon[i,2] * seq_trait ^ post_s$epsilon[i,2])) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -577,6 +889,12 @@ plot(x = dat_shells$age * mean_age_shells,
      pch = ifelse(dat_shells$has_knowledge == 1, 19, 1) , 
      cex = 1.5, 
      col =  alpha( sex_col , 0.6 ), tick = FALSE  )
+for (i in 1:dat_shells$N) {
+  points(rep(dat_shells$age[i] * mean_age_shells, 100),
+         post_s$knowledge[1:100, i],
+         cex = 0.6,
+         pch = 19,
+         col = ifelse(dat_shells$has_knowledge[i] == 0, col.alpha(sex_col[i], 0.04), col.alpha("white", 0)))}
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_shells,  
         y = post_s$omega[i] + post_s$omicron[i,1] * ( 1 - exp(-post_s$ro_age[i,1] * seq_trait)) ,  
@@ -630,12 +948,12 @@ plot(x = dat_traps$age * mean_age_traps,
      col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,  
-        y = post_t$epsilon[i,1] * ( 1 - exp(-post_t$upsilon[i,1] * seq_trait)) ,  
+        y = post_t$nu *( 1 - exp(-post_t$upsilon[i,1] * seq_trait ^ post_t$epsilon[i,1])) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,  
-        y = post_t$epsilon[i,2] * ( 1 - exp(-post_t$upsilon[i,2] * seq_trait)) ,  
+        y = post_t$nu *( 1 - exp(-post_t$upsilon[i,2] * seq_trait ^ post_t$epsilon[i,2])) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -703,4 +1021,44 @@ png("plots/tide_height&avg.png", height = 10, width = 12, units = "cm", res = 50
 dev.off()
 
 
+  
+extr_perc_shells <- vector( length = length(dat_shells$returns))
+for (i in 1:length(dat_shells$returns)){
+  phi <-  apply(post_s$iota, 1, mean) +
+    post_s$gamma * log(1-exp(- post_s$beta * dat_shells$age[dat_shells$ID_i[i]]  )) 
+  psi <-  post_s$xi * (mean(log(dat_shells$duration))) + 
+    post_s$tau* mean(dat_shells$tide) 
+  samp_data <- matrix(NA, 100, length(post_s$sigma))
+  for (j in 1:length(post_s$sigma)){
+    samp_data[,j] <- rlnorm(100,  
+                      log(post_s$alpha[j]) + phi[j] + psi[j], 
+                      post_s$sigma[j])
+  }
+  median_data <- median(samp_data)
+  extr_perc_shells[i] <- ifelse(dat_shells$returns[i] > median_data, 
+                                sum(samp_data >= dat_shells$returns[i])/(100 * length(post_s$sigma)) ,
+                                sum(samp_data <=dat_shells$returns[i] )/(100 * length(post_s$sigma)) )
+    
+}
+mean(extr_perc_shells)
+sd(extr_perc_shells)
 
+#traps 
+extr_perc_traps <- vector( length = length(dat_traps$success))
+for (i in 1:length(dat_traps$success)){
+  phi <-  apply(post_t$iota, 1, mean) +
+    post_t$gamma * log(1-exp(- post_t$beta * dat_traps$age[dat_traps$ID_i[i]]  )) 
+  psi <- post_t$xi * (mean(log (dat_traps$duration)))  
+  lambda <- post_t$alpha * exp(phi) * exp(psi)
+  samp_data <- matrix(NA, 100, length(post_t$alpha))
+  for (j in 1:length(post_t$alpha)){
+    samp_data[,j] <- rpois(100,  lambda[j])
+  }
+  median_data <- median(samp_data)
+  extr_perc_traps[i] <- ifelse(dat_traps$success[i] > median_data, 
+                                sum(samp_data >= dat_traps$success[i])/(100 * length(post_t$alpha)) ,
+                                sum(samp_data <= dat_traps$success[i] )/(100 * length(post_t$alpha)) )
+  
+}
+mean(extr_perc_traps)
+sd(extr_perc_traps)
