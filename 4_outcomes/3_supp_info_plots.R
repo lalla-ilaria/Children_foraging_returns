@@ -103,8 +103,8 @@ dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
 #load samples from model fit
-load(file = "4_outcomes/model_fit/post_s_all.rda")
-load(file = "4_outcomes/model_fit/post_t_all.rda")
+load(file = "4_outcomes/model_fit/post_s_allk.rda")
+load(file = "4_outcomes/model_fit/post_t_allk.rda")
 
 #define priors
 n_samp <- nrow(post_s$alpha)
@@ -659,10 +659,6 @@ psi <- (mean(dat_traps$duration)) ^ mean(post_t$xi)
 p <- 1 - exp ( - mean(post_t_bern$alpha) * phi * psi)
 samp_data <- rbern(length(seq_trait),  p)
 
-
-##########KEEP GOING HERE MAKING PLOT FOR BERNOULLI TRAP STUFF! Much better
-
-#NB making plot with 13212 only (one of best hunters) to make plot with optimal situation to raise curve off zero
 plot(jitter(seq_trait) * mean_age_traps, samp_data -0.1, 
      xlab = "age", ylab = "n captures",
      xlim = c(0,age_plot), ylim = c(-0.2, 1.05), 
@@ -705,7 +701,7 @@ dev.off()
 
 
 ##################################################
-#AGE ONLY - traps with average 
+#AGE ONLY - traps with best actor 
 ##################################################
 #load samples from model fit
 dat_traps <- make_list_data_age(foraging_type = "traps")
@@ -752,8 +748,10 @@ dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
 #load samples from model fit
-load(file = "4_outcomes/model_fit/post_s_all.rda")
-load(file = "4_outcomes/model_fit/post_t_all.rda")
+load(file = "4_outcomes/model_fit/post_s_allk.rda")
+load(file = "4_outcomes/model_fit/post_t_allk.rda")
+post_s <- post_s_allk
+post_t <- post_t_allk
 
 png("plots/knowledge_and_tide.png", height = 4, width = 4, units = "in", res = 500, type="cairo")
 #plot(jitter(dat_shells$age[dat_shells_all$ID_i]) , dat_shells$tide, pch = 16, col = "#1482ac", xlab = "age", ylab = "minimum tide level")
@@ -815,8 +813,10 @@ dat_shells <- make_list_data_all(foraging_type = "shells")
 dat_traps <- make_list_data_all(foraging_type = "traps")
 
 #load samples from model fit
-load(file = "4_outcomes/model_fit/post_s_all.rda")
-load(file = "4_outcomes/model_fit/post_t_all.rda")
+load(file = "4_outcomes/model_fit/post_s_allk.rda")
+load(file = "4_outcomes/model_fit/post_t_allk.rda")
+post_s <- post_s_allk
+post_t <- post_t_allk
 
 
 #check traits by age shells
@@ -870,12 +870,12 @@ for (i in 1:dat_shells$N) {
          col = ifelse(dat_shells$has_grip[i] == 0, col.alpha(sex_col[i], 0.04), col.alpha("white", 0)))}
 for (i in 1:100) {
   lines(x = seq_trait* mean_age_shells,  
-        y = post_s$nu *( 1 - exp(-post_s$upsilon[i,1] * seq_trait ^ post_s$epsilon[i,1])) ,   
+        y = post_s$nu[i, 1] *( 1 - exp(-post_s$upsilon[i,1] * seq_trait ^ post_s$epsilon[i])) ,   
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_shells,  
-        y = post_s$nu *( 1 - exp(-post_s$upsilon[i,2] * seq_trait ^ post_s$epsilon[i,2])) ,  
+        y = post_s$nu[i, 2] *( 1 - exp(-post_s$upsilon[i,2] * seq_trait ^ post_s$epsilon[i])) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 
@@ -948,12 +948,12 @@ plot(x = dat_traps$age * mean_age_traps,
      col =  alpha( sex_col , 0.6 ), tick = FALSE  )
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,  
-        y = post_t$nu *( 1 - exp(-post_t$upsilon[i,1] * seq_trait ^ post_t$epsilon[i,1])) ,  
+        y = post_t$nu[i,1] *( 1 - exp(-post_t$upsilon[i,1] * seq_trait ^ post_t$epsilon[i])) ,  
         type = "l", 
         col = col.alpha( boycol, alpha = 0.1))}
 for (i in 1:100) {
   lines(x = seq_trait * mean_age_traps,  
-        y = post_t$nu *( 1 - exp(-post_t$upsilon[i,2] * seq_trait ^ post_t$epsilon[i,2])) ,  
+        y = post_t$nu[i,2] *( 1 - exp(-post_t$upsilon[i,2] * seq_trait ^ post_t$epsilon[i])) ,  
         type = "l", 
         col = col.alpha( girlcol, alpha = 0.1))}
 

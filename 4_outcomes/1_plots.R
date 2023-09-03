@@ -84,7 +84,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
 #age variation
 #######################################
   plot(NULL, xlim = c(0,age_plot), ylim = c(0,1), 
-       xlab = "age", ylab = "proportion max foraging")#, main = "Age only"
+       xlab = "age", ylab = "\u03C6")#, main = "Age only"
   phi <- exp(median(post_s$gamma) * log(1-exp(-median(post_s$beta) * seq_trait  ))) 
   lines( seq_trait * mean_age_shells,  phi, col = col.alpha(shellcol, 1), lwd = 2)
   mu_phi <-   sapply ( seq_trait , function (x) PI (exp(post_s$gamma * log(1-exp(-post_s$beta * x ))), 0.95) )
@@ -101,7 +101,7 @@ png("plots/age_only.png", height = 16, width = 16, units = "cm", res = 500, type
   
   
   plot(NULL, xlim = c(0,age_plot), ylim = c(0,1), 
-       xlab = "age", ylab = "proportion max foraging")#, main = "Age only"
+       xlab = "age", ylab = "\u03C6")#, main = "Age only"
   phi <-  exp(median(post_t$gamma) * log(1-exp(-median(post_t$beta) * seq_trait  ))) 
   lines( seq_trait * mean_age_traps,  phi, col = col.alpha(trapcol, 1), lwd = 2)
   mu_phi <-   sapply ( seq_trait , function (x) PI (exp(post_t$gamma * log(1-exp(-post_t$beta * x ))), 0.95) )

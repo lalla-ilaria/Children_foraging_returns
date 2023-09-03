@@ -385,7 +385,7 @@ for(a in 1:4){
        xlim = c( min(pars) - 1, max(pars) +1 ),
        ylim = c( min(pars) - 2, max(pars) +2 ), 
        xlab = "'real' parameter", ylab = "recovered parameter")
-  legend(min(pars)-0.8, max(pars)+1.5, legend = c(expression(~theta), expression(~eta),expression(~zeta)), col = othercol, pch=15:17)
+  legend(min(pars)-0.8, max(pars)+1.5, legend = c("\u03b8", "\u03b7", "\u03b6"), col = othercol, pch=15:17)
   
   for ( j in 1:nrow(pars)){
     #SHELLS
