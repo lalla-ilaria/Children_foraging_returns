@@ -131,6 +131,8 @@ make_list_data_all <- function(data = real_data, foraging_type ){
       }
       #sort knowledge data
       for (i in 1:3) d_shell_k[[i]] <-  d_shell_k[[i]][ order(row.names(d_shell_k[[i]])), ]
+      #sort participants
+      d_shell_participants <- data$shells_participants[,order(d_shellppl$index_id)]
       
       #TRAPS
       d_trapppl <- data$trap_ppl
@@ -148,6 +150,8 @@ make_list_data_all <- function(data = real_data, foraging_type ){
       
       #sort knowledge data
       for (i in 1:3) d_trap_k[[i]] <-  d_trap_k[[i]][ order(row.names(d_trap_k[[i]])), ]
+      #sort participants
+      d_trap_participants <- data$traps_participants[,order(d_trapppl$index_id)]
       
       #ALL TRAPS
       d_all_trapppl <- data$trap_ppl
@@ -194,7 +198,8 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         R_n = ncol(d_shell_k[[3]]),                        #n items in image recognition
         answers_f = d_shell_k[[1]],                         #all answers from freelist
         answers_q = d_shell_k[[2]],                         #all answers from freelist
-        answers_r = d_shell_k[[3]]                         #all answers from freelist
+        answers_r = d_shell_k[[3]],                         #all answers from freelist
+        participants = d_shell_participants                 #0/1 of who participated to the trip
       )
       
       #TRAPS
@@ -223,7 +228,8 @@ make_list_data_all <- function(data = real_data, foraging_type ){
         R_n = ncol(d_trap_k[[3]]),                        #n items in image recognition
         answers_f = d_trap_k[[1]],                         #all answers from freelist
         answers_q = d_trap_k[[2]],                         #all answers from freelist
-        answers_r = d_trap_k[[3]]                         #all answers from freelist
+        answers_r = d_trap_k[[3]],                         #all answers from freelist
+        participants = d_trap_participants                 #0/1 of who participated to the trip
       )
       
       #ALL TRAPS

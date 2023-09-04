@@ -195,6 +195,7 @@ generated_quantities$n_shell_trips <- length(unique(shells$trip)) #number of she
 generated_quantities$n_shell_trips_person <- nrow(shells) #number of foraging trips/person 
 generated_quantities$n_shell_ppl <- length(unique(shells$who))
 
+
 ######################
 #CREATE LIST OF TRAPS----------------------------------------------------------------------------------------
 ######################
@@ -248,13 +249,15 @@ all_trap_data <-  all_trap_data %>% filter ( str_detect(all_trap_data$details, "
 #mark traps that captured non edible things as check
 #all_trap_data[which (all_trap_data$what == "FY_EM"),]
 all_trap_data[which (str_detect(all_trap_data$details, "komba|tumbili|remains")),"what"] <- "FY_CK"
+generated_quantities$n_missed_catch <- length(all_trap_data[which (str_detect(all_trap_data$details, "remains")),"what"])
+generated_quantities$n_nonedible_prey <- length(all_trap_data[which (str_detect(all_trap_data$details, "komba|tumbili")),"what"])
 #mark traps that captured edible things as empty trap
 all_trap_data[which (str_detect(all_trap_data$details, "remove prey from trap|kwarara")),"what"] <- "FY_EM"
 #correct remount data that are marked FY_BU
 all_trap_data[which(all_trap_data$what == "FY_BU" & str_detect(all_trap_data$details, "remount")),"what"] <- "FY_CK"
 
 #selected entries where a trap has been reported twice, once with an important entry 
-to_remove <- c("as_678", "as_2275", "as_2497", "as_6170") 
+to_remove <- c("as_362", "as_678", "as_2275", "as_2497", "as_6170") 
 all_trap_data <-  all_trap_data[ - which (all_trap_data$entry_ID %in% to_remove), ]
 
 #removes entries where a trap has been marked twice in the same trip for the same thing (e.g. twice marked as checked)
@@ -735,6 +738,34 @@ for(i in 1:nrow(trap_ppl)){
     trap_knowledge[[3]][i,] <- d_knowledge$Y_r [which (rownames(d_knowledge$Y_r) == rownames(trap_knowledge[[3]])[i]),]}
 }
 
+##########################
+#PARTICIPANTS SHELLS
+##########################
+
+shells_participants <- matrix(NA, nrow = nrow(shells), 
+                              ncol = nrow(shell_ppl),
+                              dimnames = list( shells$entry_ID, shell_ppl$anonymeID))
+for(i in 1: nrow(shells_participants)){
+  selection_participants <- d_participants[which(d_participants$trip == shells$trip[i]),]
+  selection_participants$anonymeID <- anonyme(selection_participants$ID)
+  shells_participants[i,] <- ifelse (shell_ppl$anonymeID %in% selection_participants$anonymeID, 1, 0)
+  
+}
+
+##########################
+#PARTICIPANTS TRAPS
+##########################
+
+traps_participants <- matrix(NA, nrow = nrow(traps), 
+                              ncol = nrow(trap_ppl),
+                              dimnames = list( traps$entry_ID, trap_ppl$anonymeID))
+for(i in 1: nrow(traps_participants)){
+  selection_participants <- d_participants[which(d_participants$trip == traps$trip[i]),]
+  selection_participants$anonymeID <- anonyme(selection_participants$ID)
+  traps_participants[i,] <- ifelse (trap_ppl$anonymeID %in% selection_participants$anonymeID, 1, 0)
+  
+}
+
 
 ######################
 #PREPARE DATA FOR SAVING-------------------------------------------------------------------------------------
@@ -776,9 +807,12 @@ generated_quantities$n_trap_builders <- length(unique(traps$anonymeID))#n builde
 generated_quantities$n_traps_success1 <- length(unique(traps$trap_ID[which(traps$success >= 1)]))#traps that captured
 #total n success
 generated_quantities$n_traps_preys <- sum(traps$success)
-
-
-
+generated_quantities$mean_duration_traps <- mean(traps$exposure)
+generated_quantities$mean_duration_traps <- max(traps$exposure)
+generated_quantities$mean_duration_traps <- min(traps$exposure)
+generated_quantities$mean_hdistance_obs_traps <- mean(all_trap_data$lenght_hour, na.rm = TRUE)
+generated_quantities$max_hdistance_obs_traps <- max(all_trap_data$lenght_hour, na.rm = TRUE)
+generated_quantities$min_hdistance_obs_traps <- all_trap_data$lenght_hour[which(all_trap_data$lenght_hour <= 5)][2]#the minimum time reported here, which is of about 10 minutes, is the time passed between the emptying of a trap and its dismantling. Both activities are relevant and remain in the dataset, but the time between them is not a measure of the time between consecutive observations
 
 ######################
 #GENERATE DATA LIST AND SAVE---------------------------------------------------------------------------------
@@ -788,13 +822,16 @@ d <- list (
   shells = shells[ complete.cases(shells),], 
   shell_ppl = shell_ppl,
   shell_k = shell_knowledge,
+  shells_participants = shells_participants,
   all_traps = all_trap_data[ complete.cases(all_trap_data),],
   traps = traps[complete.cases(traps),],
   trap_ppl = trap_ppl,
-  trap_k = trap_knowledge
+  trap_k = trap_knowledge,
+  traps_participants = traps_participants
 )
 
-rm(list=setdiff(ls(), c("d", "shells", "all_trap_data", "traps", "trap_ppl", "shell_ppl", "tide_data", "generated_quantities")))
+#rm(list=setdiff(ls(), c("d", "shells", "all_trap_data", "traps", "trap_ppl", "shell_ppl", "tide_data", "generated_quantities")))
+rm(list=setdiff(ls(), c("d", "tide_data", "generated_quantities")))
 
 list.save(d, '2_Data_preparation/processed_data.RData')
 write.csv(tide_data, '2_data_preparation/tide_data.csv', row.names = FALSE)
