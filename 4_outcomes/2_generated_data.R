@@ -53,17 +53,17 @@ p_max_for_10[2:3,2] <- PI((1-exp(-post_t$beta * 10/mean_age_traps  )) ^ PI(post_
 dat_shells <- make_list_data_all(foraging_type = "shells")
 
 dat_tides <- dat_shells [ c("M", "ID_i", "tide", "age", "sex")]
-dat_tides$age <- d_tides$age[d_tides$ID_i]
-dat_tides$sex <- d_tides$sex[d_tides$ID_i]
+dat_tides$age <- tide_data$age[tide_data$ID_i]
+dat_tides$sex <- tide_data$sex[tide_data$ID_i]
 dat_tides$age <- dat_tides$age * mean_age_shells
 
-dat_tides <- as.data.frame(dat_tides)
-dat_tides <- dat_tides [-which(dat_tides$age >=15 & dat_tides$sex == "m"),]
-dat_tides %>% filter(age >=20 ) %>% summarize( Mean = mean(tide))
-dat_tides %>% filter(age <=19 ) %>% summarize( Mean = mean(tide))
-
-dat_tides %>% filter(tide >0 ) %>% summarize( Mean = mean(age))
-dat_tides %>% filter(tide <=0 ) %>% summarize( Mean = mean(age))
+# dat_tides <- as.data.frame(dat_tides)
+# dat_tides <- dat_tides [-which(dat_tides$age >=15 & dat_tides$sex == "m"),]
+# dat_tides %>% filter(age >=20 ) %>% summarize( Mean = mean(tide))
+# dat_tides %>% filter(age <=19 ) %>% summarize( Mean = mean(tide))
+# 
+# dat_tides %>% filter(tide >0 ) %>% summarize( Mean = mean(age))
+# dat_tides %>% filter(tide <=0 ) %>% summarize( Mean = mean(age))
 
 ###############
 #shells calculation
