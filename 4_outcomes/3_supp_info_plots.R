@@ -37,7 +37,7 @@ png("plots/prior_predictive_simulation.png", height = 3, width = 5, units = "in"
 #plot prior predictive simulation
 par(mfrow = c(1,2),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,1), 
-     xlab = "age", ylab = "proportion improvement",
+     xlab = "age", ylab = "\u03c6",
      xaxt="n")
 axis(1, at=seq(0,3,0.5),labels=seq(0,30,5))
 #calculate per sample
@@ -61,7 +61,7 @@ text(0.4, 0.7,expression(paste(beta,"=3,",gamma,"=1",sep = "")))
 # #plot prior predictive simulation
 #par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
 plot(NULL, xlim = c(0,3), ylim = c (0,2), 
-     xlab = "age", ylab = "proportion improvement",
+     xlab = "age", ylab = "\u03c6",
      xaxt="n")
 axis(1, at=seq(0,3,0.5),labels=seq(0,30,5))
 #calculate per sample
@@ -105,6 +105,8 @@ dat_traps <- make_list_data_all(foraging_type = "traps")
 #load samples from model fit
 load(file = "4_outcomes/model_fit/post_s_allk.rda")
 load(file = "4_outcomes/model_fit/post_t_allk.rda")
+post_s <- post_s_allk
+post_t <- post_t_allk
 
 #define priors
 n_samp <- nrow(post_s$alpha)
@@ -1021,44 +1023,80 @@ png("plots/tide_height&avg.png", height = 10, width = 12, units = "cm", res = 50
 dev.off()
 
 
-  
+
+
+#make plots
+dat_shells <- make_list_data_age(foraging_type = "shells")
+dat_traps <- make_list_data_age(foraging_type = "traps")
+
+#load samples from model fit
+load(file = "4_outcomes/model_fit/post_s_age.rda")
+load(file = "4_outcomes/model_fit/post_t_age.rda")
+
 extr_perc_shells <- vector( length = length(dat_shells$returns))
+samples_shells <- matrix(NA, nrow = length(post_s$alpha), ncol = length(dat_shells$returns))
 for (i in 1:length(dat_shells$returns)){
   phi <-  apply(post_s$iota, 1, mean) +
     post_s$gamma * log(1-exp(- post_s$beta * dat_shells$age[dat_shells$ID_i[i]]  )) 
-  psi <-  post_s$xi * (mean(log(dat_shells$duration))) + 
-    post_s$tau* mean(dat_shells$tide) 
+  psi <-  post_s$xi * log(dat_shells$duration[i]) + 
+    post_s$tau* dat_shells$tide[i] 
   samp_data <- matrix(NA, 100, length(post_s$sigma))
   for (j in 1:length(post_s$sigma)){
     samp_data[,j] <- rlnorm(100,  
-                      log(post_s$alpha[j]) + phi[j] + psi[j], 
-                      post_s$sigma[j])
+                            log(post_s$alpha[j]) + phi[j] + psi[j], 
+                            post_s$sigma[j])
   }
   median_data <- median(samp_data)
   extr_perc_shells[i] <- ifelse(dat_shells$returns[i] > median_data, 
                                 sum(samp_data >= dat_shells$returns[i])/(100 * length(post_s$sigma)) ,
                                 sum(samp_data <=dat_shells$returns[i] )/(100 * length(post_s$sigma)) )
-    
+  
 }
 mean(extr_perc_shells)
 sd(extr_perc_shells)
 
+phi <-  apply(post_s$iota, 1, mean) +
+  post_s$gamma * log(1-exp(- post_s$beta * dat_shells$age[dat_shells$ID_i[3]]  )) 
+psi <-  post_s$xi * log(dat_shells$duration[3]) + 
+  post_s$tau* dat_shells$tide[3] 
+samp_data <- matrix(NA, 100, length(post_s$sigma))
+for (j in 1:length(post_s$sigma)){
+  samp_data[,j] <- rlnorm(100,  
+                          log(post_s$alpha[j]) + phi[j] + psi[j], 
+                          post_s$sigma[j])
+}
+median_data <- median(samp_data)
+density_sample <- density(samp_data)
+png("plots/posterior_prediction_shells.png", height = 5, width = 8, units = "in", res = 500, type="cairo")
+par(mfrow = c(1,1),mgp = c(1.5, 0.5, 0), mar = c(2.5, 2.5, 2, 1) + 0.1)
+plot(density_sample, xlim = c(0, 12),ylim = c(0, 0.34), col = "deepskyblue4", lwd = 2, xlab = "kg shellfish", main = "")
+points(dat_shells$returns[3], approx(density_sample$x, density_sample$y, xout = dat_shells$returns[3])[2], pch = 19, cex = 2, col = "darkorange3")
+dev.off()
+
 #traps 
 extr_perc_traps <- vector( length = length(dat_traps$success))
+predict_ones <- vector( length = length(dat_traps$success))
 for (i in 1:length(dat_traps$success)){
   phi <-  apply(post_t$iota, 1, mean) +
     post_t$gamma * log(1-exp(- post_t$beta * dat_traps$age[dat_traps$ID_i[i]]  )) 
-  psi <- post_t$xi * (mean(log (dat_traps$duration)))  
+  psi <- post_t$xi * log (dat_traps$duration[i]) 
   lambda <- post_t$alpha * exp(phi) * exp(psi)
   samp_data <- matrix(NA, 100, length(post_t$alpha))
   for (j in 1:length(post_t$alpha)){
     samp_data[,j] <- rpois(100,  lambda[j])
   }
   median_data <- median(samp_data)
-  extr_perc_traps[i] <- ifelse(dat_traps$success[i] > median_data, 
-                                sum(samp_data >= dat_traps$success[i])/(100 * length(post_t$alpha)) ,
-                                sum(samp_data <= dat_traps$success[i] )/(100 * length(post_t$alpha)) )
+  extr_perc_traps[i] <- ifelse(dat_traps$success[i] > median_data,
+                               sum(samp_data >= dat_traps$success[i])/(100 * length(post_t$alpha)) ,
+                               sum(samp_data <= dat_traps$success[i] )/(100 * length(post_t$alpha)) )
+  predict_ones[i] <-  sum(samp_data >= 1 )/(100 * length(post_t$alpha))
+  # median_data <- median(samp_data)
+  # extr_perc_traps[i] <- ifelse(dat_traps$success[i] > median(lambda), 
+  #                              sum(lambda >= dat_traps$success[i])/( length(post_t$alpha)) ,
+  #                              sum(lambda <= dat_traps$success[i] )/( length(post_t$alpha)) )
   
 }
 mean(extr_perc_traps)
 sd(extr_perc_traps)
+mean(predict_ones[dat_traps$success == 0])
+mean(predict_ones[dat_traps$success >= 1])
